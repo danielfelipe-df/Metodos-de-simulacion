@@ -1,0 +1,25 @@
+\textbf{Resultados}
+        \begin{itemize}
+            \item Se encuentra que la disipación es mayor en la simulación que en los datos reales.
+	    \item Para solucionar es problema se usa LBM para evaluar el 'exceso' de nivel de sonido. Y, mediante esta técnica, se encuentra que la disipación es mucho menor en este aspecto.
+	    \item También se consideran la reducción de la viscosidad cinética y la espaciación en la red para disminuir la disipación.
+        \end{itemize}
+
+
+\begin{frame}
+	\textbf{Simulation of the nonlinear vibration of a string using the Cellular Automata based on the reflection rule}
+	\begin{itemize}
+	    \item Se consideran cuerdas con respuestas dinámicas lineales y no-lineales
+	    \item Se utiliza la regla de reflexión del método de Autómatas celulares para estudiar las respuestas dinámicas no-lineales de una cuerda.
+	    \item Se considera un ajuste al paso de tiempo de la simulación al tiempo real. Esto es considerando la velocidad de propagación.
+	\end{itemize}
+
+	\textbf{Resultados}
+	\begin{itemize}
+	    \item Se obtiene una curva típica de resonancia.
+	    \item En la región de frencuenias de amplitudes pequeñas, los resultados coinciden con el método de análisis modal.
+	    \item Para la cuerda de comportamiento no-lineal se hallan que los resultados concuerdan con el método de Balance armónico para la región de frecuencias de pequeñas amplitudes.
+	    \item Se encuentran buenos resultados para ambos tipos de cuerdas.
+	\end{itemize}
+
+\end{frame}
