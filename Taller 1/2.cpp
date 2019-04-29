@@ -2,8 +2,6 @@
 #include <fstream>
 #include <cmath>
 
-const double ERR =1e-7;
-
 double f1(double r1, double r2, double r, double lambda);
 double f2(double r1, double r2, double r, double lambda);
 void UnPasoDeRungeKutta4(double &r1, double &r2, double &r, double &dr, double &lambda);
@@ -14,7 +12,7 @@ int main(void)
 {
   double r1 = 1, r2 = 0, r;
   double dr = 0.001;
-  double lambda = 2.4048, dlambda, lambda_max;
+  double lambda = 1, dlambda, lambda_max;
 
   //-----Punto a-----
 
@@ -53,7 +51,7 @@ int main(void)
   std::cout << "pause 10" << std::endl;
 
   //----- Punto c------
-  dlambda = 0.001;  lambda_max = 15;
+  dlambda = 0.001;  lambda_max = 15;   dr=0.001;
   //Este N se define de esta forma porque lo que hago es generar un array que tenga el tamaño necesario para guardar los datos
   int N = (int)lambda_max/dlambda;
   double data[N];
@@ -82,6 +80,38 @@ int main(void)
   std::cout << "set trange[-0.6:1]" << std::endl;
   std::cout << "plot " << algo*dlambda << ",t , 'datos_2b.dat' w l , t*10,0" << std::endl;
   std::cout << "pause 5" << std::endl;
+
+  //Definimos los intervalos donde se hallarán los ceros. Además, se define el array donde se van a guardar los lambdas a los que corresponde cada cero.
+  int intervalos[6] = {1,3,6,9,12,15};
+  double cero_lambda[5];
+
+  //Hallamos cada cero y lo guardamos
+  for(int i=0; i<(6-1); i++){
+    a = intervalos[i]/dlambda;   b = intervalos[i+1]/dlambda;
+    algo = Biseccion(a, b, data);
+    cero_lambda[i] = algo*dlambda;
+  }
+
+  //Definimos las condiciones iniciales para cada lambda y resolvemos la ecuación diferencial para cada uno.
+  double rr1[5] = {1,1,1,1,1}, rr2[5] = {0,0,0,0,0};
+  std::ofstream fout3("datos_2c.dat");
+  for(r=dr/10; r<10; r+=dr){
+    fout3 << r << " " << rr1[0] << " " << rr1[1] << " " << rr1[2] << " " << rr1[3] << " " << rr1[4] << '\n';
+    UnPasoDeRungeKutta4(rr1[0],rr2[0],r,dr,cero_lambda[0]);
+    UnPasoDeRungeKutta4(rr1[1],rr2[1],r,dr,cero_lambda[1]);
+    UnPasoDeRungeKutta4(rr1[2],rr2[2],r,dr,cero_lambda[2]);
+    UnPasoDeRungeKutta4(rr1[3],rr2[3],r,dr,cero_lambda[3]);
+    UnPasoDeRungeKutta4(rr1[4],rr2[4],r,dr,cero_lambda[4]);
+  }
+  fout3.close();
+
+  std::cout << "plot 'datos_2c.dat' using 1:2 w l, 'datos_2c.dat' using 1:3 w l, 'datos_2c.dat' using 1:4 w l, 'datos_2c.dat' using 1:5 w l, 'datos_2c.dat' using 1:6 w l" << std::endl;
+  std::cout << "pause 10" << std::endl;
+  //Se hace un zoom en el intervalo x[0:2]. Aquí se ve que efectivamente todos se cruzan en r=1.
+  std::cout << "set xrange[0:2]" << std::endl;
+  std::cout << "set yrange[-0.6:1]" << std::endl;
+  std::cout << "plot 'datos_2c.dat' using 1:2 w l, 'datos_2c.dat' using 1:3 w l, 'datos_2c.dat' using 1:4 w l, 'datos_2c.dat' using 1:5 w l, 'datos_2c.dat' using 1:6 w l" << std::endl;
+  std::cout << "pause 10" << std::endl;
 
   //----- Punto d------
 
@@ -117,7 +147,7 @@ double Biseccion(int &a, int &b, double *f)
   //Aquí se hace álgebra de punteros para asignarle la dirección a fa
   fa = f + a;
   //Aquí el while del método. Y lo que hago es definir que mientras la diferencia de casillas sea 5 o menor termine de buscar la raíz.
-  while(b-a > 5){
+  while(b-a > 2){
     //Asignación de las variables
     m=(int)(a+b)/2;  fm = f + m;
     //Aplicación del método de bisección
