@@ -69,8 +69,8 @@ int main(void)
 
   std::cout << N << std::endl;
   //Las variables int son las que me indican la posición que voy a mirar en el array
-  //En el caso de 'a' estoy interesado que casilla ocupa el valor lambda=3 en el array. Y en el caso de 'b' es lambda=6
-  double algo;   int a = 3/dlambda, b=6/dlambda;
+  //En el caso de 'a' estoy interesado que casilla ocupa el valor lambda=1 en el array. Y en el caso de 'b' es lambda=3
+  double algo;   int a = 1/dlambda, b=3/dlambda;
   algo = Biseccion(a,b,data);
   //Aquí imprimo, inicialmente, el número de la casilla, y después el valor de lambda al que corresponde
   std::cout << algo << " " << algo*dlambda << std::endl;
