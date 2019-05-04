@@ -188,10 +188,10 @@ void InicieAnimacion(void)
 void InicieCuadro(void)
 {
   std::cout << "plot 0,0 ";
-  cout<<" , "<<Lx/7<<"*t,0";
-  cout<<" , "<<Lx/7<<"*t,"<<Ly;
-  cout<<" , 0,"<<Ly/7<<"*t";
-  cout<<" , "<<Lx<<","<<Ly/7<<"*t";
+  std::cout<<" , "<<Lx/7<<"*t,0";
+  std::cout<<" , "<<Lx/7<<"*t,"<<Ly;
+  std::cout<<" , 0,"<<Ly/7<<"*t";
+  std::cout<<" , "<<Lx<<","<<Ly/7<<"*t";
 }
 
 void TermineCuadro(void)
