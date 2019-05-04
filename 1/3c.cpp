@@ -50,7 +50,7 @@ void Cuerpo::Dibujese(void){
   cout<<" , "<<r.x()<<"+"<<R<<"*cos(t),"<<r.y()<<"+"<<R<<"*sin(t)";
 }
 void Cuerpo::DibujeseRotado(void){
-  cout<<" , "<<r.x()<<"*cos(omega*l)-"<<r.y()<<"*sin(omega*l)+"<<R<<"*cos(t), "<<r.x()<<"*sin(omega*l)+"<<r.y()<<"*cos(omega*l)+"<<R<<"*sin(t)";
+  cout<<" , "<<r.x()<<"*cos(omega*l)-"<<r.y()<<"*sin(omega*l)+"<<R<<"*cos(t), "<<r.x()<<"*sin(omega*l)+"<<r.y()<<"*cos(omega*l)+"<<R<<"*sin(t) , "<<1000<<"*cos(t),"<<1000<<"*sin(t)";
 }
 //------------------ Clase Colisionador -----------------
 class Colisionador{
@@ -58,7 +58,6 @@ private:
 public:
   void CalculeFuerzaEntre(Cuerpo & Planeta1,Cuerpo & Planeta2);
   void CalculeTodasLasFuerzas(Cuerpo * Planeta,double omega);
-  void Centrifuga(Cuerpo &Planeta3,double omega);
 };
 void Colisionador::CalculeFuerzaEntre(Cuerpo & Planeta1,Cuerpo & Planeta2){
   vector3D dr=Planeta2.r-Planeta1.r;
@@ -74,16 +73,7 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Planeta,double omega){
   for(i=0;i<N;i++)
     for(j=i+1;j<N;j++)
       CalculeFuerzaEntre(Planeta[i],Planeta[j]); 
-  Centrifuga(Planeta[N-1],omega);
-}
-void Colisionador::Centrifuga(Cuerpo &Planeta3,double omega)
-{
   
-  vector3D omegavector;
-  omegavector.cargue(0,0,omega);
-  vector3D ce=(-1)*Planeta3.m*omegavector^(omegavector^Planeta3.r);  
-  Planeta3.AgregueFuerza(ce);
- 
 }
 
 //------------------ Funciones Globales -----------------
@@ -114,12 +104,10 @@ int main(void){
   double R01=5,R02=5;
   int i;
   double a=-M_PI/3;
-  vector3D real;
   InicieAnimacion();
   M=m0+m1; omega=sqrt(G*M/(r*r*r)); T=2*M_PI/omega;
   x0=m1*r/M; x1=x0-r; V0=-omega*x0; V1=-omega*x1;
-  x2=x0-r*std::cos(a);y2=r*std::sin(a);
-  double no = omega*std::sqrt(x2*x2+ y2*y2);
+  x2=x0-r*cos(a);y2=-r*sin(a);
   Vx2 = omega*y2;   Vy2 = -omega*x2;
   cout<<"omega="<<omega<<endl;
   //---------------(x0,y0,z0,Vx0,Vy0,Vz0, m0, R0)
