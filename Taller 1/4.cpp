@@ -30,7 +30,7 @@ int main(void)
   for(theta0=-M_PI/2; theta0<=M_PI/2; theta0+=0.01){
     std::cout << "plot 0,0";
     for(i=0; i<4; i++){
-      objeto[i].theta = theta0;
+      objeto[i].theta = theta0 + (M_PI/8*i);
       objeto[i].Dibujarse();
     }
     std::cout << std::endl;
