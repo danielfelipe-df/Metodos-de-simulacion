@@ -10,7 +10,7 @@ const double ka=1.0e4;
 const int Nx=5,Ny=5,N=Nx*Ny;
 const double Lx=60;
 const double Ly=60;
-const double KT=10;
+const double KT=10.0;
 const double c1=0.1786178958448091;
 const double c2=-0.2123418310626054;
 const double c3=-0.06626458266981849;

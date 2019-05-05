@@ -1,0 +1,208 @@
+//Mi Primer Programa en C++
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include "Vector.h"
+#include "Random64.h"
+#include <cstdlib>
+using namespace std;
+const double ka=1.0e4;
+const int Nx=5,Ny=5,N=Nx*Ny;
+const double Lx=60;
+const double Ly=60;
+const double KT=1.0;
+const double c1=0.1786178958448091;
+const double c2=-0.2123418310626054;
+const double c3=-0.06626458266981849;
+const double umdc2=1-2*c2;
+const double umdc3=(1-2*(c3+c1));
+const double E=1.0;
+const double r0 = 10.0;
+// Declaración de clases
+
+class Cuerpo;
+class Colisionador;
+//clase cuerpo
+class Cuerpo{
+private:
+  vector3D r,V,F; double m,R;
+public:
+  void Inicie(double x0,double y0,double z0,double Vx0,double Vy0,double Vz0,
+	      double m0,double R0);
+  void BorreFuerza(void){F.cargue(0,0,0);};
+  void AgregueFuerza(vector3D dF){F+=dF;}; 
+  void Mueva_r(double dt,double Coeficiente);
+  void Mueva_V(double dt,double Coeficiente);
+  void Dibujese(void);
+  double Getx(void){return r.x();}; //Inline
+  double Gety(void){return r.y();}; //Inline
+  double Getz(void){return r.z();}; //Inline
+  double GetVx(void){return V.x();};
+  friend class Colisionador;
+};
+void Cuerpo::Inicie(double x0,double y0,double z0,double Vx0,double Vy0,double Vz0,
+	      double m0,double R0){
+  r.cargue(x0,y0,z0); V.cargue(Vx0,Vy0,Vz0); m=m0; R=R0;
+}
+void Cuerpo::Mueva_r(double dt,double Coeficiente){
+  r+=V*(dt*Coeficiente);
+}
+void Cuerpo::Mueva_V(double dt,double Coeficiente){
+  V+=F*(dt*Coeficiente)/m;
+}
+void Cuerpo::Dibujese(void){
+  cout<<" , "<<r.x()<<"+"<<R<<"*cos(t),"<<r.y()<<"+"<<R<<"*sin(t) notitle ";
+}
+//-------------------Clase colisionador-----------------
+class Colisionador{
+private:
+  
+public:
+  void CalculeFuerzaEntre(Cuerpo & Molecula1,Cuerpo & Molecula2);
+  void CalculeTodasLasFuerzas(Cuerpo * Molecula);
+ 
+};
+void Colisionador::CalculeFuerzaEntre(Cuerpo & Molecula1,Cuerpo & Molecula2){
+  vector3D dr= Molecula2.r-Molecula1.r;
+  double aux=12.0*E*pow(norma2(dr),-1)*((pow(r0,12)*pow(norma2(dr),-6))-(pow(r0,6)*pow(norma2(dr),-3)));
+ 
+    Molecula2.AgregueFuerza( dr* aux);
+    Molecula1.AgregueFuerza(dr*(-1)*aux);
+ 
+
+}
+void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
+  int k ,l;  double h;vector3D Punto1,Punto2,F,a,b;
+  Punto1.cargue(0,120,0);Punto2.cargue(60,0,0);
+
+  for(k=0;k<(N);k++)Molecula[k].BorreFuerza();
+  for(k=0;k<N;k++){
+    	a=Punto1-Molecula[k].r;
+	if(abs(a.x())-Molecula[k].R<=0)
+	  {
+	    
+	    h=Molecula[k].R-abs(a.x());
+	    F.cargue(ka*pow(h,1.5),0,0);
+	    Molecula[k].AgregueFuerza(F);
+	  }
+	else if(abs(a.y())-Molecula[k].R<=0)
+	  {
+	   
+	    h=Molecula[k].R-abs(a.y());
+	    F.cargue(0,-ka*pow(h,1.5),0);
+	    	Molecula[k].AgregueFuerza(F);
+	  }
+	else
+	  {
+	    b=Punto2-Molecula[k].r;
+	    if(abs(b.x())-Molecula[k].R<=0)
+	  {
+	    
+	     h=Molecula[k].R-abs(b.x());
+	    F.cargue(-ka*pow(h,1.5),0,0);
+	    	Molecula[k].AgregueFuerza(F);
+	  }
+	else if(abs(b.y())-Molecula[k].R<=0)
+	  {
+	     h=Molecula[k].R-abs(b.y());
+	    F.cargue(0,ka*pow(h,1.5),0);
+	    	Molecula[k].AgregueFuerza(F);
+	  }
+        
+	    
+	  }
+	  for(l=k+1;l<N;l++)
+      CalculeFuerzaEntre(Molecula[k],Molecula[l]);
+      }
+  
+}
+
+//------------------ Funciones Globales -----------------
+void InicieAnimacion(void){
+  //  cout<<"set terminal gif animate"<<endl; 
+  //  cout<<"set output 'pelicula.gif'"<<endl;
+  //cout<<"unset key"<<endl;
+  cout<<"set xrange[-10:"<<Lx+10<<"]"<<endl;
+  cout<<"set yrange[-10:"<<2*Ly+10<<"]"<<endl;
+  cout<<"set size ratio -1"<<endl;
+  cout<<"set parametric"<<endl;
+  cout<<"set trange [0:7]"<<endl;
+  cout<<"set isosamples 12"<<endl;  
+}
+void InicieCuadro(void){
+    cout<<"plot 0,0 title\"KT=1.0 \"";
+    cout<<" , "<<Lx/7<<"*t,0 notitle";//pared de abajo
+    cout<<" , "<<Ly/7<<"*t,"<<2*Ly<<" notitle";//pared de arriba 
+    cout<<", 0,"<<2*Ly/7<<"*t notitle";//pared de la izquierda
+    cout<<" , "<<Lx<<","<<2*Ly/7<<"*t notitle";//pared de la derecha
+}
+void TermineCuadro(void){
+  cout<<endl;
+}
+
+int main(void){
+  Cuerpo Molecula[N];
+  Crandom ran64(1);
+  Colisionador Newton;
+  double t,tdibujo,dt=1.0e-2;
+  double m0=1,R0=2.5;
+  int i,j;
+ 
+  
+  //Paredes
+
+  
+  //Moleculas
+  double dx=Lx/(Nx+1),dy=Ly/(Ny+1),x0,y0, theta;
+  double V0=sqrt(2*KT/m0);
+  for(i=0;i<Nx;i++)
+    for(j=0;j<Ny;j++)
+      { x0=dx*(i+1); y0=(j+1)*dy;theta=2*M_PI*ran64.r();
+	Molecula[i*Ny+j].Inicie(x0,y0,0,V0*cos(theta),V0*sin(theta),0,m0,R0);
+	 
+      }
+  //------------(x0,y0,z0,Vx0,Vy0  ,Vz0,  m0, R0)
+  double T=100;
+  for(t=tdibujo=0;t<T;t+=dt,tdibujo+=dt){
+    //    cout<<t<<" "<<Molecula[0].Getx()<<" "<<Molecula[0].Gety()<<endl;
+   
+      if(t>T-dt)
+	{ 
+	  cout << "set terminal png" << endl;
+	  cout << "set output '5g1.0.png'" << endl;
+	  InicieAnimacion();
+	  InicieCuadro();
+	  for(i=0;i<N;i++)Molecula[i].Dibujese();
+	  TermineCuadro;
+	  }
+    
+    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
+    
+    Newton.CalculeTodasLasFuerzas(Molecula);
+    for(int i=0;i<N;i++)Molecula[i].Mueva_V(dt,umdc2);
+    
+    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c3);
+    
+    Newton.CalculeTodasLasFuerzas(Molecula);
+    for(int i=0;i<N;i++)Molecula[i].Mueva_V(dt,c2);
+    
+    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,umdc3);
+    
+    Newton.CalculeTodasLasFuerzas(Molecula);
+    for(int i=0;i<N;i++)Molecula[i].Mueva_V(dt,c2);
+   
+
+    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c3);
+
+    
+    Newton.CalculeTodasLasFuerzas(Molecula);
+    for(int i=0;i<N;i++)Molecula[i].Mueva_V(dt,umdc2);
+
+    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
+    
+  }
+  
+ 
+
+  return 0;
+}
