@@ -144,7 +144,7 @@ int main(void){
   double t,dt=1.0e-3;
   double m0=1,R0=2.5;
   int i,j;
-  double teq = 55;
+  double teq = 110;
   //Moleculas
   double dx=Lx/(Nx+1),dy=Ly/(Ny+1),x0,y0, theta;
   double V0=sqrt(2*KT/m0);
@@ -156,14 +156,14 @@ int main(void){
   }
 
   //------------(x0,y0,z0,Vx0,Vy0  ,Vz0,  m0, R0)
-  double T=200;
+  double T=400;
   int M = int(T/dt);
   double array_Vx[M];
   double sum1;
   
-  //ofstream file("data_5f.dat");
+  ofstream file("data_5f.dat");
   for(t=0, j=0;t<T;t+=dt, j++){
-    
+    /*
     if(t<=(teq+dt) && t>=(teq-dt)){
       ofstream file("data_5f.dat");
       for(i=0;i<N;i++){
@@ -173,15 +173,14 @@ int main(void){
       file.close();
       break;
     }
-    
-    /*
+    */
     if(t>teq){
       sum1=0;
       for(i=0; i<N; i++) sum1 += Molecula[i].GetVx();
       file << t << " " << sum1/N << "\n";
       array_Vx[j] = sum1/N;
     }
-    */
+
     for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
     
     Newton.CalculeTodasLasFuerzas(Molecula);
@@ -206,7 +205,7 @@ int main(void){
     
     for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);    
   }
-  //file.close();
+  file.close();
   //printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC)
 
   std::cout << "set terminal png" << std::endl;
@@ -223,12 +222,12 @@ int main(void){
 
   double sum=0, average, s;
   double sigma = sqrt(KT/m0);
-  for(i=0; i<N; i++) sum += array_Vx[i];
-  average = sum/N;
+  for(i=0; i<M; i++) sum += array_Vx[i];
+  average = sum/M;
 
   sum=0;
-  for(i=0; i<N;i++) sum += pow(array_Vx[i] - average, 2);
-  s = sqrt(sum/(N-1));
+  for(i=0; i<M;i++) sum += pow(array_Vx[i] - average, 2);
+  s = sqrt(sum/(M-1));
 
   std::cout << sigma << "\t" << s << "\t" << sigma-s << "\t" << abs(sigma-s)/sigma << std::endl;
   
