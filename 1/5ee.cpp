@@ -76,44 +76,39 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
 
   for(k=0;k<(N);k++)Molecula[k].BorreFuerza();
   for(k=0;k<N;k++){
-    	a=Punto1-Molecula[k].r;
-	if(abs(a.x())-Molecula[k].R<=0)
+    a=Punto1-Molecula[k].r;
+    if(abs(a.x())-Molecula[k].R<=0)
+      {	
+	h=Molecula[k].R-abs(a.x());
+	F.cargue(ka*pow(h,1.5),0,0);
+	Molecula[k].AgregueFuerza(F);
+      }
+    else if(abs(a.y())-Molecula[k].R<=0)
+      {       
+	h=Molecula[k].R-abs(a.y());
+	F.cargue(0,-ka*pow(h,1.5),0);
+	Molecula[k].AgregueFuerza(F);
+      }
+    else
+      {
+	b=Punto2-Molecula[k].r;
+	if(abs(b.x())-Molecula[k].R<=0)
 	  {
 	    
-	    h=Molecula[k].R-abs(a.x());
-	    F.cargue(ka*pow(h,1.5),0,0);
-	    Molecula[k].AgregueFuerza(F);
-	  }
-	else if(abs(a.y())-Molecula[k].R<=0)
-	  {
-	   
-	    h=Molecula[k].R-abs(a.y());
-	    F.cargue(0,-ka*pow(h,1.5),0);
-	    	Molecula[k].AgregueFuerza(F);
-	  }
-	else
-	  {
-	    b=Punto2-Molecula[k].r;
-	    if(abs(b.x())-Molecula[k].R<=0)
-	  {
-	    
-	     h=Molecula[k].R-abs(b.x());
+	    h=Molecula[k].R-abs(b.x());
 	    F.cargue(-ka*pow(h,1.5),0,0);
-	    	Molecula[k].AgregueFuerza(F);
+	    Molecula[k].AgregueFuerza(F);
 	  }
 	else if(abs(b.y())-Molecula[k].R<=0)
 	  {
-	     h=Molecula[k].R-abs(b.y());
+	    h=Molecula[k].R-abs(b.y());
 	    F.cargue(0,ka*pow(h,1.5),0);
-	    	Molecula[k].AgregueFuerza(F);
-	  }
-        
-	    
-	  }
-	  for(l=k+1;l<N;l++)
-      CalculeFuerzaEntre(Molecula[k],Molecula[l]);
+	    Molecula[k].AgregueFuerza(F);
+	  }         
       }
-  
+    for(l=k+1;l<N;l++)
+      CalculeFuerzaEntre(Molecula[k],Molecula[l]);
+  }
 }
 
 //------------------ Funciones Globales -----------------
