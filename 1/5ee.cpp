@@ -1,10 +1,10 @@
-//Mi Primer Programa en C++
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include "Vector.h"
 #include "Random64.h"
 #include <cstdlib>
+#include <time.h>
 using namespace std;
 const double k=1.0e4;
 const int Nx=5,Ny=5,N=Nx*Ny;
@@ -17,7 +17,6 @@ const double c3=-0.06626458266981849;
 const double umdc2=1-2*c2;
 const double umdc3=(1-2*(c3+c1));
 const double E=1.0;
-const double r0 = 10.0;
 // Declaración de clases
 
 class Cuerpo;
@@ -56,6 +55,8 @@ void Cuerpo::Dibujese(void){
 //-------------------Clase colisionador-----------------
 class Colisionador{
 private:
+  vector3D r0;
+
   
 public:
   void CalculeFuerzaEntre(Cuerpo & Molecula1,Cuerpo & Molecula2);
@@ -64,7 +65,7 @@ public:
 };
 void Colisionador::CalculeFuerzaEntre(Cuerpo & Molecula1,Cuerpo & Molecula2){
   vector3D dr= Molecula2.r-Molecula1.r;
-  double aux=12.0*E*pow(norma2(dr),-1)*((pow(r0,12)*pow(norma2(dr),-6))-(pow(r0,6)*pow(norma2(dr),-3)));
+  double aux=12.0*E*pow(norma2(dr),-1)*((pow(norma(r0),12)*pow(norma2(dr),-6))-(pow(norma(r0),6)*pow(norma2(dr),-3)));
  
     Molecula2.AgregueFuerza( dr* aux);
     Molecula1.AgregueFuerza(dr*(-1)*aux);
@@ -73,54 +74,50 @@ void Colisionador::CalculeFuerzaEntre(Cuerpo & Molecula1,Cuerpo & Molecula2){
 }
 
 void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
-  int i ,j;vector3D Punto1,Punto2,F,a,b;  double h;
+  int i ,j;  double h;vector3D Punto1,Punto2,F,a,b;
   Punto1.cargue(0,120,0);Punto2.cargue(60,0,0);
-  for(i=0;i<N;i++)Molecula[i].BorreFuerza();
+
+  for(i=0;i<(N);i++)Molecula[i].BorreFuerza();
   for(i=0;i<N;i++){
-    for(j=i+1;j<(N);j++)
-      { CalculeFuerzaEntre(Molecula[i],Molecula[j]);}
-    //-Paredes
-    a=Punto1-Molecula[i].r;
-    if(abs(a.x())-Molecula[i].R<=0)
-      {
-	
-	h=Molecula[i].R-abs(a.x());
-	F.cargue(k*pow(h,1.5),0,0);
-	    Molecula[i].AgregueFuerza(F);
-      }
-    else if(abs(a.y())-Molecula[i].R<=0)
-      {
-	
-	h=Molecula[i].R-abs(a.y());
-	F.cargue(0,-k*pow(h,1.5),0);
-	Molecula[i].AgregueFuerza(F);
-      }
-    else
-      {
-	b=Punto2-Molecula[i].r;
-	if(abs(b.x())-Molecula[i].R<=0)
+    	a=Punto1-Molecula[i].r;
+	if(abs(a.x())-Molecula[i*Ny+j].R<=0)
 	  {
 	    
-	    h=Molecula[i].R-abs(b.x());
-	    F.cargue(-k*pow(h,1.5),0,0);
+	    h=Molecula[i].R-abs(a.x());
+	    F.cargue(k*pow(h,1.5),0,0);
 	    Molecula[i].AgregueFuerza(F);
+	  }
+	else if(abs(a.y())-Molecula[i].R<=0)
+	  {
+	   
+	    h=Molecula[i].R-abs(a.y());
+	    F.cargue(0,-k*pow(h,1.5),0);
+	    	Molecula[i].AgregueFuerza(F);
+	  }
+	else
+	  {
+	    b=Punto2-Molecula[i].r;
+	    if(abs(b.x())-Molecula[i*Ny+j].R<=0)
+	  {
+	    
+	     h=Molecula[i].R-abs(b.x());
+	    F.cargue(-k*pow(h,1.5),0,0);
+	    	Molecula[i].AgregueFuerza(F);
 	  }
 	else if(abs(b.y())-Molecula[i].R<=0)
 	  {
-	   
-	    h=Molecula[i].R-abs(b.y());
+	     h=Molecula[i].R-abs(b.y());
 	    F.cargue(0,k*pow(h,1.5),0);
-	    Molecula[i].AgregueFuerza(F);
+	    	Molecula[i].AgregueFuerza(F);
+	  }
+        
+	    
 	  }
 	
       }
-    
-  }
+    for(j=i+1;j<(N);j++)
+      CalculeFuerzaEntre(Molecula[i],Molecula[j]);
 }
-
- 
-
-
 //------------------ Funciones Globales -----------------
 void InicieAnimacion(void){
   //  cout<<"set terminal gif animate"<<endl; 
@@ -145,13 +142,13 @@ void TermineCuadro(void){
 }
 
 int main(void){
+  clock_t tStart = clock();
   Cuerpo Molecula[N];
   Crandom ran64(1);
   Colisionador Newton;
-  double t,tdibujo,dt=1.0e-2;
+  double t,tdibujo,dt=1.0e-3;
   double m0=1,R0=2.5;
   int i,j;
-  InicieAnimacion();
   
   //Paredes
 
@@ -166,17 +163,22 @@ int main(void){
 	 
       }
   //------------(x0,y0,z0,Vx0,Vy0  ,Vz0,  m0, R0)
-  double T=100;
+  double T=400;
+  double sum,sum_old;
+  int c=0;
+  ofstream file("dat.dat");
   for(t=tdibujo=0;t<T;t+=dt,tdibujo+=dt){
-    //    cout<<t<<" "<<Molecula[0].Getx()<<" "<<Molecula[0].Gety()<<endl;
-    
-    if(tdibujo>T/1000){
-      InicieCuadro();
-      for(int i =0; i<N;i++) Molecula[i].Dibujese();
-      TermineCuadro();
-      tdibujo=0;
+    sum_old=sum;
+    for(i=0;i<N;i++)
+      	sum+=Molecula[i].Gety()/N;
+
+    file<<t<<" "<<sum<<endl;
+    if(abs(sum_old-sum)<=20 && c==0){
+      cout<<t<<endl;
+      c+=1;
     }
-    
+     sum=0;
+     
     for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
     
     Newton.CalculeTodasLasFuerzas(Molecula);
@@ -202,12 +204,10 @@ int main(void){
     for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
     
   }
-  
-  //----------IMPRIMIR RESULTADO-----------------------
-  for(i=0;i<Nx;i++)
-    {
-      //    cout<<Molecula[N].GetVx()<<endl;
-    }
+   
+    printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+    return 0;
+ 
 
   return 0;
 }
