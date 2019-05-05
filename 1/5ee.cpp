@@ -138,7 +138,7 @@ void TermineCuadro(void){
 int main(void){
   clock_t tStart = clock();
   Cuerpo Molecula[N];
-  Crandom ran64(1);
+  Crandom ran64(10);
   Colisionador Newton;
   double t,tdibujo,dt=1.0e-3;
   double m0=1,R0=2.5;
@@ -157,7 +157,7 @@ int main(void){
 	 
       }
   //------------(x0,y0,z0,Vx0,Vy0  ,Vz0,  m0, R0)
-  double T=400;
+  double T=1000;
   double sum,sum_old;
   int c=0;
   ofstream file("dat.dat");
@@ -199,8 +199,11 @@ int main(void){
     
   }
   
-  printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+  //printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
   file.close();
+
+  std::cout << "plot 'dat.dat' w l" << std::endl;
+  std::cout << "pause 10" << std::endl;
   
   return 0;
 }
