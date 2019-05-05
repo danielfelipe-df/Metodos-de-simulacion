@@ -204,6 +204,7 @@ int main(void){
     for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
     
   }
+  file.close();
    
     printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     return 0;
