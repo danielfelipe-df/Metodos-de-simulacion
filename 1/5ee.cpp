@@ -189,8 +189,10 @@ int main(void){
   //printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
   file.close();
 
+  std::cout << "set terminal png" << std::endl;
+  std::cout << "set output 'xvst_5ee.png'" << std::endl;
   std::cout << "plot 'dat.dat' w l" << std::endl;
-  std::cout << "pause 10" << std::endl;
+  //std::cout << "pause 10" << std::endl;
   
   return 0;
 }
