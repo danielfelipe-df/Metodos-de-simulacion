@@ -74,9 +74,11 @@ int main(void){
   Planeta.Inicie(X0 , 0,  0,V0,   0,   0, m1,R);
   Planeta.CalculeFuerza();
   Planeta.Arranque(dt);
+
+  ofstream fout("data_5a1.dat");
   for(t=tdibujo=0;t<100;t+=dt,tdibujo+=dt){
     // cout<<Planeta.Getx()<<" "<<Planeta.Gety()<<endl;
-    
+
     if(tdibujo>100/1000){
       InicieCuadro();
       Planeta.Dibujese();
@@ -86,7 +88,32 @@ int main(void){
     
     Planeta.CalculeFuerza();
     Planeta.Muevase(dt);
+    fout << t << " " << Planeta.Getx() << '\n';
   }
-  
+  fout.close();
+
+  dt = dt/10;
+
+  Planeta.Inicie(X0 , 0,  0,V0,   0,   0, m1,R);
+  Planeta.CalculeFuerza();
+  Planeta.Arranque(dt);
+
+  fout.open("data_5a2.dat");
+  for(t=tdibujo=0;t<100;t+=dt,tdibujo+=dt){
+    // cout<<Planeta.Getx()<<" "<<Planeta.Gety()<<endl;
+
+    if(tdibujo>100/1000){
+      InicieCuadro();
+      Planeta.Dibujese();
+      TermineCuadro();
+      tdibujo=0;
+    }
+
+    Planeta.CalculeFuerza();
+    Planeta.Muevase(dt);
+    fout << t << " " << Planeta.Getx() << '\n';
+  }
+  fout.close();
+
   return 0;
 }

@@ -117,7 +117,7 @@ int main(void){
   Molecula[N+1].Inicie(Lx/2,-Rpared,0,0,0,0,Mpared,Rpared);
   //pared derecha
   Molecula[N+2].Inicie(Lx+Rpared,Ly/2,0,0,0,0,Mpared,Rpared);
-  //Pared Izquiera
+  //Pared Izquierda
   Molecula[N+3].Inicie(-Rpared,Ly/2,0,0,0,0,Mpared,Rpared);
 
   
