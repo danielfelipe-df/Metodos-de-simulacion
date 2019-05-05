@@ -77,7 +77,7 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
   for(i=0;i<(N);i++)Molecula[i].BorreFuerza();
   for(i=0;i<N;i++){
     a=Punto1-Molecula[i].r;
-    if(abs(a.x())-Molecula[i*Ny+j].R<=0)
+    if(abs(a.x())-Molecula[i].R<=0)
       {	    
 	h=Molecula[i].R-abs(a.x());
 	F.cargue(k*pow(h,1.5),0,0);
@@ -92,7 +92,7 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
     else
       {
 	b=Punto2-Molecula[i].r;
-	if(abs(b.x())-Molecula[i*Ny+j].R<=0)
+	if(abs(b.x())-Molecula[i].R<=0)
 	  {	    
 	    h=Molecula[i].R-abs(b.x());
 	    F.cargue(-k*pow(h,1.5),0,0);
@@ -104,10 +104,11 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
 	    F.cargue(0,k*pow(h,1.5),0);
 	    Molecula[i].AgregueFuerza(F);
 	  }
-      }	
+      }
+    for(j=i+1;j<(N);j++)
+      CalculeFuerzaEntre(Molecula[i],Molecula[j]);
   }
-  for(j=i+1;j<(N);j++)
-    CalculeFuerzaEntre(Molecula[i],Molecula[j]);
+  
 }
 //------------------ Funciones Globales -----------------
 void InicieAnimacion(void){
@@ -137,7 +138,7 @@ int main(void){
   Cuerpo Molecula[N];
   Crandom ran64(10);
   Colisionador Newton;
-  double t,tdibujo,dt=1.0e-3;
+  double t,dt=1.0e-3;
   double m0=1,R0=2.5;
   int i,j;
   
@@ -156,10 +157,8 @@ int main(void){
 
   //------------(x0,y0,z0,Vx0,Vy0  ,Vz0,  m0, R0)
   double T=1000, sum;
-  int c=0;
-
   ofstream file("dat.dat");
-  for(t=tdibujo=0;t<T;t+=dt,tdibujo+=dt){
+  for(t=0;t<T;t+=dt){
     for(i=0;i<N;i++) sum+=Molecula[i].Gety();
  
     file<<t<<" "<<sum/N<<endl;

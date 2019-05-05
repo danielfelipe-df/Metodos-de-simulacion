@@ -6,7 +6,7 @@
 #include "Random64.h"
 #include <cstdlib>
 using namespace std;
-const double k=1.0e4;
+const double ka=1.0e4;
 const int Nx=5,Ny=5,N=Nx*Ny;
 const double Lx=60;
 const double Ly=60;
@@ -71,55 +71,51 @@ void Colisionador::CalculeFuerzaEntre(Cuerpo & Molecula1,Cuerpo & Molecula2){
  
 
 }
-
 void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
-  int i ,j;vector3D Punto1,Punto2,F,a,b;  double h;
+  int k ,l;  double h;vector3D Punto1,Punto2,F,a,b;
   Punto1.cargue(0,120,0);Punto2.cargue(60,0,0);
-  for(i=0;i<N;i++)Molecula[i].BorreFuerza();
-  for(i=0;i<N;i++){
-    for(j=i+1;j<(N);j++)
-      { CalculeFuerzaEntre(Molecula[i],Molecula[j]);}
-    //-Paredes
-    a=Punto1-Molecula[i].r;
-    if(abs(a.x())-Molecula[i].R<=0)
-      {
-	
-	h=Molecula[i].R-abs(a.x());
-	F.cargue(k*pow(h,1.5),0,0);
-	    Molecula[i].AgregueFuerza(F);
-      }
-    else if(abs(a.y())-Molecula[i].R<=0)
-      {
-	
-	h=Molecula[i].R-abs(a.y());
-	F.cargue(0,-k*pow(h,1.5),0);
-	Molecula[i].AgregueFuerza(F);
-      }
-    else
-      {
-	b=Punto2-Molecula[i].r;
-	if(abs(b.x())-Molecula[i].R<=0)
+
+  for(k=0;k<(N);k++)Molecula[k].BorreFuerza();
+  for(k=0;k<N;k++){
+    	a=Punto1-Molecula[k].r;
+	if(abs(a.x())-Molecula[k].R<=0)
 	  {
 	    
-	    h=Molecula[i].R-abs(b.x());
-	    F.cargue(-k*pow(h,1.5),0,0);
-	    Molecula[i].AgregueFuerza(F);
+	    h=Molecula[k].R-abs(a.x());
+	    F.cargue(ka*pow(h,1.5),0,0);
+	    Molecula[k].AgregueFuerza(F);
 	  }
-	else if(abs(b.y())-Molecula[i].R<=0)
+	else if(abs(a.y())-Molecula[k].R<=0)
 	  {
 	   
-	    h=Molecula[i].R-abs(b.y());
-	    F.cargue(0,k*pow(h,1.5),0);
-	    Molecula[i].AgregueFuerza(F);
+	    h=Molecula[k].R-abs(a.y());
+	    F.cargue(0,-ka*pow(h,1.5),0);
+	    	Molecula[k].AgregueFuerza(F);
 	  }
-	
+	else
+	  {
+	    b=Punto2-Molecula[k].r;
+	    if(abs(b.x())-Molecula[k].R<=0)
+	  {
+	    
+	     h=Molecula[k].R-abs(b.x());
+	    F.cargue(-ka*pow(h,1.5),0,0);
+	    	Molecula[k].AgregueFuerza(F);
+	  }
+	else if(abs(b.y())-Molecula[k].R<=0)
+	  {
+	     h=Molecula[k].R-abs(b.y());
+	    F.cargue(0,ka*pow(h,1.5),0);
+	    	Molecula[k].AgregueFuerza(F);
+	  }
+        
+	    
+	  }
+	  for(l=k+1;l<N;l++)
+      CalculeFuerzaEntre(Molecula[k],Molecula[l]);
       }
-    
-  }
+  
 }
-
- 
-
 
 //------------------ Funciones Globales -----------------
 void InicieAnimacion(void){
