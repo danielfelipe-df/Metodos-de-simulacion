@@ -144,7 +144,7 @@ int main(void){
   double t,dt=1.0e-3;
   double m0=1,R0=2.5;
   int i,j;
-  double teq = 50;
+  double teq = 110;
   //Moleculas
   double dx=Lx/(Nx+1),dy=Ly/(Ny+1),x0,y0, theta;
   double V0=sqrt(2*KT/m0);
