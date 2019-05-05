@@ -156,13 +156,17 @@ int main(void){
   }
 
   //------------(x0,y0,z0,Vx0,Vy0  ,Vz0,  m0, R0)
-  double T=400, sum;
+  double T=400;
+  double array_Vx[N];
 
   for(t=0;t<T;t+=dt){
 
     if(t<=(teq+dt) && t>=(teq-dt)){
       ofstream file("data_5f.dat");
-      for(i=0;i<N;i++) file << i << " " << Molecula[i].GetVx() << "\n";
+      for(i=0;i<N;i++){
+	file << i << " " << Molecula[i].GetVx() << "\n";
+	array_Vx[i] = Molecula[i].GetVx();
+      }
       file.close();
       break;
     }
@@ -205,6 +209,17 @@ int main(void){
   std::cout << "bin(x,width)=width*floor(x/width)" << std::endl;
   std::cout << "plot 'data_5f.dat' using (bin($2,binwidth)):(1.0) smooth freq with boxes" << std::endl;
   //std::cout << "pause 10" << std::endl;
+
+  double sum=0, average, s;
+  double sigma = sqrt(KT/m0);
+  for(i=0; i<N; i++) sum += array_Vx[i];
+  average = sum/N;
+
+  sum=0;
+  for(i=0; i<N;i++) sum += pow(array_Vx[i] - average, 2);
+  s = sqrt(sum/(N-1));
+
+  std::cout << sigma << "\t" << s << "\t" << sigma-s << "\t" << abs(sigma-s)/sigma << std::endl;
   
   return 0;
 }
