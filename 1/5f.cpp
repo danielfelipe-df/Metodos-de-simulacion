@@ -17,8 +17,7 @@ const double c3=-0.06626458266981849;
 const double umdc2=1-2*c2;
 const double umdc3=(1-2*(c3+c1));
 const double E=1.0;
-const double r0=10.0;
-// Declaración de clases
+// DeclaraciÃ³n de clases
 
 class Cuerpo;
 class Colisionador;
@@ -61,13 +60,13 @@ public:
   void CalculeTodasLasFuerzas(Cuerpo * Molecula);
  
 };
+
 void Colisionador::CalculeFuerzaEntre(Cuerpo & Molecula1,Cuerpo & Molecula2){
   vector3D dr= Molecula2.r-Molecula1.r;
   double aux=12.0*E*pow(norma2(dr),-1)*((pow(r0,12)*pow(norma2(dr),-6))-(pow(r0,6)*pow(norma2(dr),-3)));
  
-    Molecula2.AgregueFuerza( dr* aux);
-    Molecula1.AgregueFuerza(dr*(-1)*aux);
- 
+  Molecula2.AgregueFuerza( dr* aux);
+  Molecula1.AgregueFuerza(dr*(-1)*aux);
 
 }
 
@@ -77,44 +76,38 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
 
   for(i=0;i<(N);i++)Molecula[i].BorreFuerza();
   for(i=0;i<N;i++){
-    	a=Punto1-Molecula[i].r;
-	if(abs(a.x())-Molecula[i*Ny+j].R<=0)
-	  {
-	    
-	    h=Molecula[i].R-abs(a.x());
-	    F.cargue(k*pow(h,1.5),0,0);
-	    Molecula[i].AgregueFuerza(F);
-	  }
-	else if(abs(a.y())-Molecula[i].R<=0)
-	  {
-	   
-	    h=Molecula[i].R-abs(a.y());
-	    F.cargue(0,-k*pow(h,1.5),0);
-	    	Molecula[i].AgregueFuerza(F);
-	  }
-	else
-	  {
-	    b=Punto2-Molecula[i].r;
-	    if(abs(b.x())-Molecula[i*Ny+j].R<=0)
-	  {
-	    
-	     h=Molecula[i].R-abs(b.x());
+    a=Punto1-Molecula[i].r;
+    if(abs(a.x())-Molecula[i*Ny+j].R<=0)
+      {	    
+	h=Molecula[i].R-abs(a.x());
+	F.cargue(k*pow(h,1.5),0,0);
+	Molecula[i].AgregueFuerza(F);
+      }
+    else if(abs(a.y())-Molecula[i].R<=0)
+      {  
+	h=Molecula[i].R-abs(a.y());
+	F.cargue(0,-k*pow(h,1.5),0);
+	Molecula[i].AgregueFuerza(F);
+      }
+    else
+      {
+	b=Punto2-Molecula[i].r;
+	if(abs(b.x())-Molecula[i*Ny+j].R<=0)
+	  {	    
+	    h=Molecula[i].R-abs(b.x());
 	    F.cargue(-k*pow(h,1.5),0,0);
-	    	Molecula[i].AgregueFuerza(F);
+	    Molecula[i].AgregueFuerza(F);
 	  }
 	else if(abs(b.y())-Molecula[i].R<=0)
 	  {
-	     h=Molecula[i].R-abs(b.y());
+	    h=Molecula[i].R-abs(b.y());
 	    F.cargue(0,k*pow(h,1.5),0);
-	    	Molecula[i].AgregueFuerza(F);
+	    Molecula[i].AgregueFuerza(F);
 	  }
-        
-	    
-	  }
-	
-      }
-    for(j=i+1;j<(N);j++)
-      CalculeFuerzaEntre(Molecula[i],Molecula[j]);
+      }	
+  }
+  for(j=i+1;j<(N);j++)
+    CalculeFuerzaEntre(Molecula[i],Molecula[j]);
 }
 //------------------ Funciones Globales -----------------
 void InicieAnimacion(void){
