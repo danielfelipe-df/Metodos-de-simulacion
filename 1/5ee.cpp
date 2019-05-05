@@ -79,44 +79,38 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
 
   for(i=0;i<(N);i++)Molecula[i].BorreFuerza();
   for(i=0;i<N;i++){
-    	a=Punto1-Molecula[i].r;
-	if(abs(a.x())-Molecula[i*Ny+j].R<=0)
-	  {
-	    
-	    h=Molecula[i].R-abs(a.x());
-	    F.cargue(k*pow(h,1.5),0,0);
-	    Molecula[i].AgregueFuerza(F);
-	  }
-	else if(abs(a.y())-Molecula[i].R<=0)
-	  {
-	   
-	    h=Molecula[i].R-abs(a.y());
-	    F.cargue(0,-k*pow(h,1.5),0);
-	    	Molecula[i].AgregueFuerza(F);
-	  }
-	else
-	  {
-	    b=Punto2-Molecula[i].r;
-	    if(abs(b.x())-Molecula[i*Ny+j].R<=0)
-	  {
-	    
-	     h=Molecula[i].R-abs(b.x());
+    a=Punto1-Molecula[i].r;
+    if(abs(a.x())-Molecula[i*Ny+j].R<=0)
+      {	    
+	h=Molecula[i].R-abs(a.x());
+	F.cargue(k*pow(h,1.5),0,0);
+	Molecula[i].AgregueFuerza(F);
+      }
+    else if(abs(a.y())-Molecula[i].R<=0)
+      {  
+	h=Molecula[i].R-abs(a.y());
+	F.cargue(0,-k*pow(h,1.5),0);
+	Molecula[i].AgregueFuerza(F);
+      }
+    else
+      {
+	b=Punto2-Molecula[i].r;
+	if(abs(b.x())-Molecula[i*Ny+j].R<=0)
+	  {	    
+	    h=Molecula[i].R-abs(b.x());
 	    F.cargue(-k*pow(h,1.5),0,0);
-	    	Molecula[i].AgregueFuerza(F);
+	    Molecula[i].AgregueFuerza(F);
 	  }
 	else if(abs(b.y())-Molecula[i].R<=0)
 	  {
-	     h=Molecula[i].R-abs(b.y());
+	    h=Molecula[i].R-abs(b.y());
 	    F.cargue(0,k*pow(h,1.5),0);
-	    	Molecula[i].AgregueFuerza(F);
+	    Molecula[i].AgregueFuerza(F);
 	  }
-        
-	    
-	  }
-	
-      }
-    for(j=i+1;j<(N);j++)
-      CalculeFuerzaEntre(Molecula[i],Molecula[j]);
+      }	
+  }
+  for(j=i+1;j<(N);j++)
+    CalculeFuerzaEntre(Molecula[i],Molecula[j]);
 }
 //------------------ Funciones Globales -----------------
 void InicieAnimacion(void){
@@ -170,45 +164,43 @@ int main(void){
   for(t=tdibujo=0;t<T;t+=dt,tdibujo+=dt){
     sum_old=sum;
     for(i=0;i<N;i++)
-      	sum+=Molecula[i].Gety()/N;
-
+      sum+=Molecula[i].Gety()/N;
+    
     file<<t<<" "<<sum<<endl;
     if(abs(sum_old-sum)<=20 && c==0){
       cout<<t<<endl;
       c+=1;
     }
-     sum=0;
-     
-    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
+    sum=0;
+    
+    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
     
     Newton.CalculeTodasLasFuerzas(Molecula);
-    for(int i=0;i<N;i++)Molecula[i].Mueva_V(dt,umdc2);
+    for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,umdc2);
     
-    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c3);
-    
-    Newton.CalculeTodasLasFuerzas(Molecula);
-    for(int i=0;i<N;i++)Molecula[i].Mueva_V(dt,c2);
-    
-    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,umdc3);
+    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,c3);
     
     Newton.CalculeTodasLasFuerzas(Molecula);
-    for(int i=0;i<N;i++)Molecula[i].Mueva_V(dt,c2);
-   
-
-    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c3);
-
+    for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,c2);
+    
+    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,umdc3);
     
     Newton.CalculeTodasLasFuerzas(Molecula);
-    for(int i=0;i<N;i++)Molecula[i].Mueva_V(dt,umdc2);
-
-    for(int i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
+    for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,c2);
+    
+    
+    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,c3);
+    
+    
+    Newton.CalculeTodasLasFuerzas(Molecula);
+    for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,umdc2);
+    
+    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
     
   }
+  
+  printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
   file.close();
-   
-    printf("Time taken: %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
-    return 0;
-    file.close();
-
+  
   return 0;
 }
