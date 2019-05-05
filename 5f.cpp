@@ -197,16 +197,14 @@ int main(void){
     for(i=0;i<N;i++) Molecula[i].Mueva_V(dt,Coeficiente1);
     for(i=0;i<N;i++) Molecula[i].Mueva_r(dt,Zi);
     
-    std::cout << t << std::endl;
-    if(t=teq){
-      std::cout << t << std::endl;
+    if(t<=(teq+dt) && t>=(teq-dt)){
       for(i=0; i<N; i++){
 	
 	VelocidadParticulaenteq[i]= Molecula[i].GetVx();
       }
     }
-    
   } 
+
   double Total;
   double Promedio;
   for (i=0; i<N; i++){
