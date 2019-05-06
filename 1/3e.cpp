@@ -1,12 +1,10 @@
-
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include "Vector.h"
 using namespace std;
 
-const int N=2;//cantidad de planetas
-
+const int N=3;//cantidad de planetas
 const double G=1.0;
 //Para PEFRL
 const double Zi=0.1786178958448091e0;
@@ -50,101 +48,99 @@ void Cuerpo::Dibujese(void){
   cout<<" , "<<r.x()<<"+"<<R<<"*cos(t),"<<r.y()<<"+"<<R<<"*sin(t)";
 }
 void Cuerpo::DibujeseRotado(void){
-  cout<<" , "<<r.x()<<"*cos(omega*l)-"<<r.y()<<"*sin(omega*l)+"<<R<<"*cos(t), "<<r.x()<<"*sin(omega*l)+"<<r.y()<<"*cos(omega*l)+"<<R<<"*sin(t)";//Se multiplica la posicion por la matriz de rotación, en el sentido contrario al movimiento de tal manera que se vea quieto
+  cout<<" , "<<r.x()<<"*cos(omega*l)-"<<r.y()<<"*sin(omega*l)+"<<R<<"*cos(t), "<<r.x()<<"*sin(omega*l)+"<<r.y()<<"*cos(omega*l)+"<<R<<"*sin(t) , "<<1000<<"*cos(t),"<<1000<<"*sin(t)";
 }
 //------------------ Clase Colisionador -----------------
 class Colisionador{
-private:
+private: 
 public:
   void CalculeFuerzaEntre(Cuerpo & Planeta1,Cuerpo & Planeta2);
-  void CalculeTodasLasFuerzas(Cuerpo * Planeta);
+  void CalculeTodasLasFuerzas(Cuerpo * Planeta,double omega);
 };
 void Colisionador::CalculeFuerzaEntre(Cuerpo & Planeta1,Cuerpo & Planeta2){
   vector3D dr=Planeta2.r-Planeta1.r;
   double aux=G*Planeta1.m*Planeta2.m*pow(norma2(dr),-1.5);
   vector3D F1=dr*aux;
   Planeta1.AgregueFuerza(F1);  Planeta2.AgregueFuerza(F1*(-1));
+ 
 }
-void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Planeta){
+void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Planeta,double omega){
   int i,j;
   for(i=0;i<N;i++) Planeta[i].BorreFuerza();
+    
   for(i=0;i<N;i++)
     for(j=i+1;j<N;j++)
-      CalculeFuerzaEntre(Planeta[i],Planeta[j]);
+      CalculeFuerzaEntre(Planeta[i],Planeta[j]); 
+  
 }
 
-//------------------ Funciones Globales -----------------
-void InicieAnimacion(void){
-  //  cout<<"set terminal gif animate"<<endl; 
-  //  cout<<"set output 'pelicula.gif'"<<endl;
-  cout<<"unset key"<<endl;
-  cout<<"set xrange[-1100:1100]"<<endl;
-  cout<<"set yrange[-1100:1100]"<<endl;
-  cout<<"set size ratio -1"<<endl;
-  cout<<"set parametric"<<endl;
-  cout<<"set trange [0:7]"<<endl;
-  cout<<"set isosamples 12"<<endl;  
-}
-void InicieCuadro(void){
-    cout<<"plot 0,0 ";
-}
-void TermineCuadro(void){
-    cout<<endl;
-}
 
 int main(void){
   Cuerpo Planeta[N];
   Colisionador Newton;
+  int i,c=0;
   double t,tdibujo,dt=50.0;
-  double r=1000,m0=1047,m1=1;
-  double M,omega,T,x0,x1,V0,V1,l;
-  double R01=10,R02=5;
-  int i;
-
-  InicieAnimacion();
-  
+  double r=1000,m0=1047,m1=1,m2=0.005;
+  double M,omega,T,x0,x1,V0,V1,l,x2,y2,Vx2, Vy2,x,x_old,x_old_old,l_old,sum;
+  double R01=5,R02=5;
+  double a=-M_PI/3,perturbacion=3e-3;
   M=m0+m1; omega=sqrt(G*M/(r*r*r)); T=2*M_PI/omega;
-  x0=m1*r/M; x1=x0-r; V0=-omega*x0; V1=-omega*x1;//pusimos un menos aqui para que no tuviera la misma dirección que la matriz de rotacion
-  cout<<"omega="<<omega<<endl;
+  x0=m1*r/M; x1=x0-r; V0=-omega*x0; V1=-omega*x1;
+  x2=x0-r*cos(a);y2=-r*sin(a);
+  Vx2 = omega*y2+perturbacion;   Vy2 = -omega*x2;
   //---------------(x0,y0,z0,Vx0,Vy0,Vz0, m0, R0)
-  Planeta[0].Inicie(x0, 0, 0,  0, V0,  0, m0, R01*10);
-  Planeta[1].Inicie(x1, 0, 0,  0, V1,  0, m1,  R02*10);
-  ofstream fout("punto3b.dat");
-  for(l=tdibujo=0;l<20*T;l+=dt,tdibujo+=dt){
-    /*
-     cout<<"l="<<l<<endl;
-    if(tdibujo>T/1000){
-      InicieCuadro();  
-      for(i=0;i<N;i++)Planeta[i].DibujeseRotado();
-
-      TermineCuadro();
-      tdibujo=0;
-    }*/
-    fout << l << "  " << Planeta[0].Getx()*cos(omega*l)-Planeta[0].Gety()*sin(omega*l)<<"  " << Planeta[0].Gety()*cos(omega*l)+ Planeta[0].Gety()*sin(omega*l)<<"  "<< Planeta[1].Getx()*cos(omega*l)-Planeta[1].Gety()*sin(omega*l)<<"  " << Planeta[1].Gety()*cos(omega*l)+ Planeta[1].Gety()*sin(omega*l)<< '\n';
-    
+  Planeta[0].Inicie(x0, 0, 0, 0, V0, 0, m0, R01);
+  Planeta[1].Inicie(x1, 0, 0, 0, V1,  0, m1,  R02);
+  Planeta[2].Inicie(x2, y2,0,Vx2, Vy2,   0, m2,  R02);
+  std::ofstream fout("data.dat");
+  std::ofstream fout2("puntos.dat");
+   x= Planeta[2].Getx()*cos(omega*l)-Planeta[2].Gety()*sin(omega*l);
+   x_old=x;//Aqui para tener los puntos donde estan los valles, comparo con dos valores viejos. si se esta en un valle el valor old va  aser menor que el anterior y tambien que el valor nuevo 
+   x_old_old=x_old;
+  for(l=0;l<30*T;l+=dt){
+    x= Planeta[2].Getx()*cos(omega*l)-Planeta[2].Gety()*sin(omega*l);
+    if(x_old<x && x_old<x_old_old){
+      fout2 <<x<<"  "<< l <<'\n';
+      if(c==0){l_old=l;c+=1;}//esto se hace una vez ya que es para inicializar el l_old que es el tiempo en donde ahi un valle
+      else
+	{ 
+	  sum+=l-l_old;//sumo las distancias(en tiempo) de los valles
+	  l_old=l;//actualizo el l_old
+	  c+=1;//cuento cuantos l hay
+	}
+    }
+    else
+       fout <<x<<"  "<< l <<'\n';
+     
     //Moverlo Segun PEFRL Orden 4
     for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,Zi);
-    Newton.CalculeTodasLasFuerzas(Planeta);
+    Newton.CalculeTodasLasFuerzas(Planeta,omega);
+    
     for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,Coeficiente1);
     for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,Xi);
-    Newton.CalculeTodasLasFuerzas(Planeta);
+    Newton.CalculeTodasLasFuerzas(Planeta,omega);
+    
     for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,Lambda);
     for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,Coeficiente2);
-    Newton.CalculeTodasLasFuerzas(Planeta);
+    Newton.CalculeTodasLasFuerzas(Planeta,omega);
+    
     for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,Lambda);
     for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,Xi);
-    Newton.CalculeTodasLasFuerzas(Planeta);
+    Newton.CalculeTodasLasFuerzas(Planeta,omega);
+   
     for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,Coeficiente1);
     for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,Zi);
+    x_old_old=x_old;
+    x_old=x;
   }
   fout.close();
-  cout<<"set terminal png"<<endl;
-  cout<<"set output\"3b.png\""<<endl;
-  cout<<"set xrange[0:"<<T*2<<"]"<<endl;
-  cout<<"set yrange[-1100:1100]"<<endl;
-  cout<<"set xlabel \" T \""<<endl;
-  cout<<"set ylabel \" X \""<<endl;
-  cout<<"plot \"punto3b.dat\" u 1:2 w l, \"punto3b.dat\" u 1:4 w l"<<endl;
-  
+  fout2.close();
+  cout<<"set terminal png "<<endl;
+  cout<<"set output \"3e.png \" "<<endl;
+  cout<<"set xrange[0:"<<30*T<<"]"<<endl;
+  cout<<"set xlabel \"T \""<<endl;
+  cout<<"set ylabel \"X\""<<endl;
+  cout<<"plot \"data.dat\" u 2:1 w l title \"Planeta\", \"puntos.dat\" u 2:1 w points title  \"Valles\" "<<endl;
+  // cout<<sum/c;/* este imprime el promedio de los tiempo que corresponde a T_2*/
   return 0;
 }
