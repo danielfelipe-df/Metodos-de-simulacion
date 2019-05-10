@@ -67,7 +67,7 @@ int main(void){
   double m1=1.0;
   double R=2.5;
   double V0 = pow(2.0*KbT/m1,0.5),X0=10;
-  InicieAnimacion();
+  //InicieAnimacion();
 
  
   //------------(  x0,y0, z0,Vx0, Vy0, Vz0,  m0, R0)
@@ -77,43 +77,26 @@ int main(void){
 
   ofstream fout("data_5a1.dat");
   for(t=tdibujo=0;t<100;t+=dt,tdibujo+=dt){
-    // cout<<Planeta.Getx()<<" "<<Planeta.Gety()<<endl;
-
+    /*
     if(tdibujo>100/1000){
       InicieCuadro();
       Planeta.Dibujese();
       TermineCuadro();
       tdibujo=0;
     }
-    
+    */
     Planeta.CalculeFuerza();
     Planeta.Muevase(dt);
     fout << t << " " << Planeta.Getx() << '\n';
   }
   fout.close();
 
-  dt = dt/10;
-
-  Planeta.Inicie(X0 , 0,  0,V0,   0,   0, m1,R);
-  Planeta.CalculeFuerza();
-  Planeta.Arranque(dt);
-
-  fout.open("data_5a2.dat");
-  for(t=tdibujo=0;t<100;t+=dt,tdibujo+=dt){
-    // cout<<Planeta.Getx()<<" "<<Planeta.Gety()<<endl;
-
-    if(tdibujo>100/1000){
-      InicieCuadro();
-      Planeta.Dibujese();
-      TermineCuadro();
-      tdibujo=0;
-    }
-
-    Planeta.CalculeFuerza();
-    Planeta.Muevase(dt);
-    fout << t << " " << Planeta.Getx() << '\n';
-  }
-  fout.close();
+  cout << "set terminal pdf" << endl;
+  cout << "set output 'figure_5a.pdf'" << endl;
+  cout << "set title 'Potencial Lennard-Jones'" << endl;
+  cout << "set xlabel 't'" << endl;
+  cout << "set ylabel 'x'" << endl;
+  cout << "plot 'data_5a.dat' w l title ''" << endl;
 
   return 0;
 }

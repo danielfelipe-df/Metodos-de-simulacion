@@ -163,7 +163,7 @@ int main(void){
   
   ofstream file("data_5f.dat");
   for(t=0, j=0;t<T;t+=dt, j++){
-    /*
+    
     if(t<=(teq+dt) && t>=(teq-dt)){
       ofstream file("data_5f.dat");
       for(i=0;i<N;i++){
@@ -173,14 +173,15 @@ int main(void){
       file.close();
       break;
     }
-    */
+    
+    /*
     if(t>teq){
       sum1=0;
       for(i=0; i<N; i++) sum1 += Molecula[i].GetVx();
       file << t << " " << sum1/N << "\n";
       array_Vx[j] = sum1/N;
     }
-
+    */
     for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,c1);
     
     Newton.CalculeTodasLasFuerzas(Molecula);
@@ -215,8 +216,8 @@ int main(void){
 
   std::cout << "set terminal png" << std::endl;
   std::cout << "set output 'histogram_vx.png'" << std::endl;
-  std::cout << "binwidth=20" << std::endl;
-  std::cout << "bin(x,width)=width*floor(100*x/width)*0.01" << std::endl;
+  std::cout << "binwidth=1" << std::endl;
+  std::cout << "bin(x,width)=width*floor(x/width)" << std::endl;
   std::cout << "plot 'data_5f.dat' using (bin($2,binwidth)):(1.0) smooth freq with boxes" << std::endl;
   //std::cout << "pause 10" << std::endl;
 

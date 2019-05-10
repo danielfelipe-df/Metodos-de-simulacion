@@ -72,62 +72,55 @@ void Colisionador::CalculeFuerzaEntre(Cuerpo & Molecula1,Cuerpo & Molecula2){
 }
 void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Molecula){
   int i,j;
- 
+  
   for(i=0;i<N;i++) Molecula[i].BorreFuerza();
+  
   for(i=0;i<N;i++){
     for(j=i+1;j<N;j++){
-     CalculeFuerzaEntre(Molecula[i],Molecula[j]);
-    }
-  
+      CalculeFuerzaEntre(Molecula[i],Molecula[j]);
+    } 
   }
   //Calcular Fuerza Con las Paredes
 
   vector3D S1, S2, S3, S4, F3, P13, P24;
   double h, FP;
   
-  P13.cargue(0, Ly, 0);
   P24.cargue(Lx, 0, 0);
+  P13.cargue(0, Ly, 0);
   
-  for (i=0; i<N; i++){
-       
-  S1 = P24 - Molecula[i].r;
-  S2 = (-1)*S1;
-  
-  S3 = P13 - Molecula[i].r;
-  S4 = (-1)*S3;
-  
-  
+  for (i=0; i<N; i++){    
+    S1 = P24 - Molecula[i].r;
+    S2 = (-1)*S1;
+    S3 = P13 - Molecula[i].r;
+    S4 = (-1)*S3;  
     
-  if(S1.x() <= R1){
-    h = R1-S1.x();
-    FP = -k*pow(h,1.5);
-    
-    F3.cargue(FP,0,0);}
+    if(S1.x()<=R1){
+      h = R1-S1.x();
+      FP = -k*pow(h,1.5);
+      F3.cargue(FP,0,0);
+    }
+    else if(S2.y()<=R1){
+      h =R1- S2.y();
+      FP = k*pow(h,1.5);
+      F3.cargue(0,FP,0); 
+    }
+    else if(S3.y()<=R1){
+      h =R1- S3.y();
+      FP = -k*pow(h,1.5);
+      F3.cargue(0,FP,0);
+    }
+    else if(S4.x()<=R1){
+      h = R1-S4.x();
+      FP = k*pow(h,1.5);
+      F3.cargue(FP,0,0);
+    }
+    else{F3.cargue(0,0,0);}
   
-  else if (S2.y() <= R1 ){
-    h =R1- S2.y();
-    FP = k*pow(h,1.5);
-    
-    F3.cargue(0,FP,0); }
-  
-  else  if (S3.y() <= R1 ){
-    h =R1- S3.y();
-    FP = -k*pow(h,1.5);
-    
-    F3.cargue(0,FP,0); }
-  
-  else   if  (S4.x() <= R1 ){
-    h = R1-S4.x();
-    FP = k*pow(h,1.5);
-    
-    F3.cargue(FP,0,0); }
-  
-  else {F3.cargue(0,0,0);}
-  
-  Molecula[i].AgregueFuerza(F3);
+    Molecula[i].AgregueFuerza(F3);
   }
     
-  }
+}
+
   //------------------ Funciones Globales -----------------
 void InicieAnimacion(void){
   //  cout<<"set terminal gif animate"<<endl; 
@@ -161,7 +154,7 @@ int main(void){
   double kT=10.0;
   
 
-   InicieAnimacion();
+  //InicieAnimacion();
 
   //--------------INICIALIZACION----------------------------
 
@@ -180,16 +173,16 @@ int main(void){
     }
       
   //------------CORRER LA SIMULACION-------------------------
-  double T=50,Teq=20;
+  double T=50,Teq=70;
   for(t=tdibujo=0;t<Teq+T;t+=dt,tdibujo+=dt){
     
     if(tdibujo>T/1000){
       if(t>Teq) for(int n=0;n<N;n++) cout<<Molecula[n].GetVx()<<endl;
-      
+      /*
       InicieCuadro();
       for(i=0;i<N;i++) Molecula[i].Dibujese();
       TermineCuadro();
-      
+      */
       tdibujo=0;
     }
     

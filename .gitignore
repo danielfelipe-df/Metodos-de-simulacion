@@ -2,3 +2,5 @@
 *.x
 a.out
 *.PDF
+*.pdf
+*#

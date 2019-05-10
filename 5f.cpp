@@ -179,7 +179,7 @@ int main(void){
       Molecula[i*Ny+j].Inicie(x0,y0, 0,Vx0,Vy0,  0, m0, R0);
     }
 
-  double teq=55, T=200;
+  double teq=70, T=200;
   for(t=0;t<=teq;t+=dt){
    
     //Moverlo Segun PEFRL Orden 4
@@ -198,10 +198,12 @@ int main(void){
     for(i=0;i<N;i++) Molecula[i].Mueva_r(dt,Zi);
     
     if(t<=(teq+dt) && t>=(teq-dt)){
+      ofstream fout("data_5f.dat");
       for(i=0; i<N; i++){
-	
+	fout << i << " " << Molecula[i].GetVx() << "\n";
 	VelocidadParticulaenteq[i]= Molecula[i].GetVx();
       }
+      fout.close();
     }
   } 
 
@@ -229,8 +231,15 @@ int main(void){
   cout<<sigma<<endl;
 
   cout<<"Error porcentual"<<endl;
-  cout<< (sigma-3.16228)*100.0/3.16228; 
+  cout<< (sigma-3.16228)*100.0/3.16228 << endl; 
   
   //------------IMPRIMIR RESULTADOS-------------------------
+
+  std::cout << "set terminal png" << std::endl;
+  std::cout << "set output 'histogram_vx.png'" << std::endl;
+  std::cout << "binwidth=1.5" << std::endl;
+  std::cout << "bin(x,width)=width*floor(x/width)" << std::endl;
+  std::cout << "plot 'data_5f.dat' using (bin($2,binwidth)):(1.0) smooth freq with boxes" << std::endl;
+
   return 0;
 }

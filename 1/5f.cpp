@@ -139,12 +139,12 @@ void TermineCuadro(void){
 int main(void){
   clock_t tStart = clock();
   Cuerpo Molecula[N];
-  Crandom ran64(50);
+  Crandom ran64(1);
   Colisionador Newton;
   double t,dt=1.0e-3;
   double m0=1,R0=2.5;
   int i,j;
-  double teq = 55;
+  double teq = 70;
   //Moleculas
   double dx=Lx/(Nx+1),dy=Ly/(Ny+1),x0,y0, theta;
   double V0=sqrt(2*KT/m0);
@@ -216,8 +216,8 @@ int main(void){
 
   std::cout << "set terminal png" << std::endl;
   std::cout << "set output 'histogram_vx.png'" << std::endl;
-  std::cout << "binwidth=20" << std::endl;
-  std::cout << "bin(x,width)=width*floor(100*x/width)*0.01" << std::endl;
+  std::cout << "binwidth=1" << std::endl;
+  std::cout << "bin(x,width)=width*floor(x/width)" << std::endl;
   std::cout << "plot 'data_5f.dat' using (bin($2,binwidth)):(1.0) smooth freq with boxes" << std::endl;
   //std::cout << "pause 10" << std::endl;
 
