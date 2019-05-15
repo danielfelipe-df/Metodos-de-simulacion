@@ -42,7 +42,7 @@ void Cuerpo::Inicie(double theta0,double omega0, double m0,double R0,double x0in
   theta=theta0;
   m=m0;	R=R0; 
   xinicial=x0inicial;
-  I=m*L*L;
+  I=m*L*L + 0.5*m*R*R;
 
 }
 void Cuerpo::Mueva_theta(double dt,double Constante){
@@ -73,27 +73,27 @@ void Colisionador::CalculeTorqueEntre(Cuerpo & Pendulo1,Cuerpo & Pendulo2){
   d21= Pendulo2.Getx()-Pendulo1.Getx();
   s=(Pendulo2.R+Pendulo1.R) - fabs(d21);
   if(s>=0){ // si hay choque 
-    F2=d21*K*pow(s,1.5)/fabs(d21); tau2 =F2*L ;
+    F2=d21*K*pow(s,1.5)/fabs(d21); tau2 =F2*L;
     Pendulo2.AgregarTorque(tau2);
     Pendulo1.AgregarTorque(-tau2);
   }
 } 
-  void Colisionador::CalculeTodosLosTorques(Cuerpo* Pendulo){
+void Colisionador::CalculeTodosLosTorques(Cuerpo* Pendulo){
   int i,j;
   
   for(i=0;i<N;i++){
-   Pendulo[i].BorrarTorque();
+     Pendulo[i].BorrarTorque();
   }
   //fuerza gravitacional 
    for(i=0; i<N; i++){
-   Pendulo[i].AgregarTorque(-Pendulo[i].m*g*L*sin(Pendulo[i].theta));
-    }
+      Pendulo[i].AgregarTorque(-Pendulo[i].m*g*L*sin(Pendulo[i].theta));
+   }
    //choque entre las bolas
   for(i=0;i<N;i++)
-  for(j=i+1; j<N;j++){
-    CalculeTorqueEntre(Pendulo[i],Pendulo[j]);
-  }
-  }
+    for(j=i+1; j<N;j++){
+       CalculeTorqueEntre(Pendulo[i],Pendulo[j]);
+    }
+}
   
 
 
@@ -124,7 +124,7 @@ int main(void){
   Colisionador Newton;
   int i;
     
-  double m0=1, R0=0.015;
+  double m0=0.1, R0=0.015;
   double x0inicial=0, theta0=-15*M_PI/180, T= 2*M_PI*sqrt(L/g), tmax=5*T;
   
   //InicieAnimacion();
@@ -137,8 +137,8 @@ int main(void){
   
   double tdibujo; int Ndibujos=200;
    
-  ofstream fout("data_cuna.dat");
-  for (t=tdibujo=0; t<0.2; t+=dt, tdibujo+=dt){
+  //ofstream fout("data_cuna.dat");
+  for (t=tdibujo=0; t<0.09; t+=dt, tdibujo+=dt){
     //cout<<t<<" "<<Pendulo[0].tau<<endl;
     // cout<<Pendulo[0].Getx()<<'\t'<<Pendulo[0].Gety()<<endl;
     //cout<<t<<" "<<Pendulo[0].Getx()<<endl;
@@ -155,12 +155,14 @@ int main(void){
       }
     */
 
+    /*
     fout << t << "\t";
     for(i=0;i<N;i++){
        fout << Pendulo[i].Gettau() << "\t";
+       //fout << -Pendulo[i].m*g*L*sin(Pendulo[i].theta) << "\t";
     }
     fout << "\n";
-
+    */
     //Muevase con Forest-Ruth
     for(i=0;i<N;i++) Pendulo[i].Mueva_theta(dt,0.5*theta);  //dt, Zeta
     Newton.CalculeTodosLosTorques(Pendulo);
@@ -175,10 +177,13 @@ int main(void){
     Newton.CalculeTodosLosTorques(Pendulo);
     for(i=0;i<N;i++) Pendulo[i].Mueva_omega(dt,theta);      //dt, (1-2*Lambda)/2
     for(i=0;i<N;i++) Pendulo[i].Mueva_theta(dt,(theta)/2);  //dt, Zeta
+    //cout << Pendulo[1].Gettau() << endl;
   }
+  /*
   fout.close();
   cout << "plot 'data_cuna.dat' u 1:3 w l" << endl;
   cout << "pause 10" << endl;
+  */
   return 0;
 }
 
