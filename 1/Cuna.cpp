@@ -6,8 +6,8 @@ using namespace std;
 
 //-------------Constantes----------------
 const double g=9.8;
-const int N=5;
-const double K=9e10;
+const int N=3;
+const double K=0.1e10;
 const double L=0.12; 
 //----------Constantes del metodo--------
 const double Zeta=0.1786178958448091;
@@ -32,6 +32,7 @@ public:
   double Gettheta(void){return theta;};
   double Getx(void){return xinicial+L*sin(theta);};
   double Gety(void){return -L*cos(theta);};
+  double Gettau(void){return tau;};
   friend class Colisionador;
   friend int main ();
 };
@@ -126,7 +127,7 @@ int main(void){
   double m0=1, R0=0.015;
   double x0inicial=0, theta0=-15*M_PI/180, T= 2*M_PI*sqrt(L/g), tmax=5*T;
   
-  InicieAnimacion();
+  //InicieAnimacion();
 
 //-----------Inicie(theta0,omega0, m0, R0, x0inicial);
   Pendulo[0].Inicie(theta0,   0,   m0, R0, x0inicial);
@@ -136,13 +137,14 @@ int main(void){
   
   double tdibujo; int Ndibujos=200;
    
-  for (t=tdibujo=0; t<tmax; t+=dt, tdibujo+=dt){
+  ofstream fout("data_cuna.dat");
+  for (t=tdibujo=0; t<0.2; t+=dt, tdibujo+=dt){
     //cout<<t<<" "<<Pendulo[0].tau<<endl;
     // cout<<Pendulo[0].Getx()<<'\t'<<Pendulo[0].Gety()<<endl;
     //cout<<t<<" "<<Pendulo[0].Getx()<<endl;
     // cout<<t<<" "<<Pendulo[1].Getx()<<endl;
     //cout<<t<<" "<<Pendulo[2].Getx()<<endl;
-
+    /*
      if (tdibujo>tmax/Ndibujos){
       InicieCuadro();
       for (i=0; i<N; i++)
@@ -151,7 +153,14 @@ int main(void){
       tdibujo=0;
 
       }
-    
+    */
+
+    fout << t << "\t";
+    for(i=0;i<N;i++){
+       fout << Pendulo[i].Gettau() << "\t";
+    }
+    fout << "\n";
+
     //Muevase con Forest-Ruth
     for(i=0;i<N;i++) Pendulo[i].Mueva_theta(dt,0.5*theta);  //dt, Zeta
     Newton.CalculeTodosLosTorques(Pendulo);
@@ -166,7 +175,10 @@ int main(void){
     Newton.CalculeTodosLosTorques(Pendulo);
     for(i=0;i<N;i++) Pendulo[i].Mueva_omega(dt,theta);      //dt, (1-2*Lambda)/2
     for(i=0;i<N;i++) Pendulo[i].Mueva_theta(dt,(theta)/2);  //dt, Zeta
-     }
+  }
+  fout.close();
+  cout << "plot 'data_cuna.dat' u 1:3 w l" << endl;
+  cout << "pause 10" << endl;
   return 0;
 }
 
