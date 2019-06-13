@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <cmath>
 #include "Random64.h"
@@ -14,7 +14,7 @@ const double p2=p;
 class LatticeGas{
 private:
   int V[4][1];
-  int n[Lx][4], nnew[Lx][4];//4 direcciones arriba abajo derecha izquierda
+  int n[Lx][Ly][4], nnew[Lx][Ly][4];//4 direcciones arriba abajo derecha izquierda
 public:
   void Inicie(int B, double mu, double sigma, Crandom & ran64);
   void Show(bool ImprimirNew);
@@ -24,24 +24,30 @@ public:
 };
 double LatticeGas::GetSigma2(void)
 {
-  double N, xprom, sigma2;  int i,k;
+  double N, xprom, sigma2;  int i,k, j;
   //cuantas bolitas 
   for(N=0, i=0; i<Lx; i++){
-    for(k=0; k<4; k++){
-      N+=n[i][k];
+    for(j=0; j<Ly; j++){
+      for(k=0; k<4; k++){
+        N+=n[i][j][k];
+      }
     }
   }
   //Distancia promedio
   for(xprom=0, i=0; i<Lx; i++){
-    for(k=0; k<4; k++){
-      xprom+=i*n[i][k];
+    for(j=0; j<Ly; j++){
+      for(k=0; k<4; k++){
+        xprom+=i*j*n[i][j][k];
+      }
     }
   }
   xprom /= N;
   //distancia al cuadrado
   for(sigma2=0, i=0; i<Lx; i++){
-    for(k=0; k<4; k++){
-      sigma2+=i*i*n[i][k];
+    for(j=0; j<Ly; j++){
+      for(k=0; k<4; k++){
+        sigma2+=i*i*j*j*n[i][j][k];
+      }
     }
   }
   //distancia al cuadrado menos N por el promedio al cuadrado sobre n-1. asi es la definicion.
@@ -51,40 +57,44 @@ double LatticeGas::GetSigma2(void)
 }
 void LatticeGas::Adveccione(void){
   for(int i=0;i<Lx;i++)//para cada celda
-    for(int k=0;k<4;k++)
-      n[(i+Lx+V[k][0])%Lx][k]=nnew[i][k]; // el primer parentesis con modulo genera fronteras periodicas
+    for(j=0; j<Ly; j++)
+      for(int k=0;k<4;k++)
+        n[(i+Lx+V[k][0])%Lx][(i+Ly+V[k][1])%Ly][k]=nnew[i][j][k]; // el primer parentesis con modulo genera fronteras periodicas
 }  
  
 void LatticeGas::Colisione(Crandom & ran64){
-  for(int i=0;i<Lx;i++)//ir celda por celda
-    if(ran64.r()<p0){
-      for(int k=0;k<4;k++)
-	nnew[i][k]=n[i][k];//se deja igual   
-    }
-    else if(ran64.r()<(p0+p)){
-      for(int k=0;k<4;k++)
-	nnew[(5+i)%4][k]=n[i][k];//90 grados
-    }
-    else if(ran64.r()<(p0+p+p1)){
-      for(int k=0;k<4;k++)
-	nnew[(6+i)%4][k]=n[i][k];//180 grados
-    }
-    else{
-      for(int k=0;k<4;k++)
-	nnew[(7+i)%4][k]=n[i][k];//270 grados
-    }
+  for(int i=0;i<Lx;i++)
+    for(int j=0; j<Ly; j++)//ir celda por celda
+      if(ran64.r()<p0){
+        for(int k=0;k<4;k++)
+          nnew[i][j][k]=n[i][j][k];//se deja igual
+      }
+      else if(ran64.r()<(p0+p)){
+        for(int k=0;k<4;k++)
+          nnew[(1+i)%4][(1+j)%4][k]=n[i][j][k];//90 grados
+      }
+      else if(ran64.r()<(p0+p+p1)){
+        for(int k=0;k<4;k++)
+          nnew[(2+i)%4][2+j)%4][k]=n[i][j][k];//180 grados
+      }
+      else{
+        for(int k=0;k<4;k++)
+          nnew[(3+i)%4][(3+j)%4][k]=n[i][j][k];//270 grados
+      }
  
 }
 
 void LatticeGas::Show(bool ImprimirNew){
   for(int k=0;k<4;k++){
     for(int i=0;i<Lx;i++)
-      if(ImprimirNew) cout<<nnew[i][k]; else cout<<n[i][k];
-    cout<<endl;
-      }
+      for(int j=0;j<Ly;j++)
+        if(ImprimirNew) cout<<nnew[i][j][k]; else cout<<n[i][j][k];
+      cout<<endl;
+  }
 }
 void LatticeGas::Inicie(int B, double mu, double sigma, Crandom & ran64){
-  V[0][0]=1;   V[1][0]= 1; V[2][0]=-1;V[3][0]=-1;
+  V[0][0]=1;   V[1][0]=1; V[2][0]=0;  V[3][0]=0;
+  V[0][1]=0;   V[1][1]=0; V[2][1]=1;  V[3][1]=-1;
   //iniciar los contenidos
   int i,k,b;
   for(i=0;i<Lx;i++)
