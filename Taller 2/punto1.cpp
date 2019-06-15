@@ -11,7 +11,6 @@ const int Ly=256;
 const double p0=0.25;
 const double p=0.25;
 const double pp=1-(2*p)-p0;
-const double pp1=p;
 const double p1=p+p0;
 const double p2=p+p0+pp;
 const int Q=4;
@@ -98,10 +97,11 @@ void LatticeGas::Inicie(int B, double mu, double sigma, Crandom & ran64,double m
     }
   }
 }
-
 int main(void){
   LatticeGas Difusion;
   Crandom ran64(1);
+  double D=p1/(2*(1-p1));
+  double Pendiente=4*D;
   int B=2400; double mu=Lx/2.0,sigma=32,mu2=Ly/2.0;
   int t, tmax=350;
   Difusion.Inicie(B,mu,sigma,ran64,mu2);
@@ -112,7 +112,16 @@ int main(void){
     Difusion.Adveccione();
   }
   file.close();
-  cout<<"plot \"dat.dat\" w l  "<<endl;
-  cout<<"pause 100"<<endl;
+  cout<<"f(x)=m*x+b "<<endl;
+  cout<<"a="<<Pendiente<<endl;
+  cout<<"fit f(x) \"dat.dat\" u 1:2 via m,b"<<endl;
+  cout<<"title_f(m,b)=sprintf('f(x)=%.2fx+ %.2f',m,b)"<<endl;
+  cout<<"g(x)=a*x+b"<<endl;
+  cout<<"title_g(a,b)=sprintf('g(x)=%.2gx+ %.2g',a,b)"<<endl;
+  cout<<"set terminal png"<<endl;
+  cout<<"set output \" P0="<<p0<<"P="<<p<<" \"" <<endl;
+  cout<<"set xlabel \"t\" "<<endl;
+  cout<<"set ylabel \"sigma cuadrado\""<<endl;
+  cout<<"plot f(x) t title_f(m,b), \"dat.dat\" title\"datos\" w l lt rgb \"black\" ,g(x) t title_g(a,b)"<<endl;
   return 0;
 }
