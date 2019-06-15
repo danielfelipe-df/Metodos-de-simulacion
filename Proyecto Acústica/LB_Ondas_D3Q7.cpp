@@ -8,6 +8,7 @@ const int Lz=40;
 
 const int Q=7;
 const double W0=1.0/4;
+//Constante de reflexión
 const double k=1;
 
 const double C=0.5; // C<0.707 celdas/click
@@ -86,15 +87,15 @@ void LatticeBoltzmann::Colisione(void){
         //Calcular las cantidades macroscópicas
         rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
         fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
-        if(ix==Lx-1 || ix==0){fnew[ix][iy][iz][2]=f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=f[ix][iy][iz][2];}
+        if(ix==Lx-1 || ix==0){fnew[ix][iy][iz][2]=k*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=k*f[ix][iy][iz][2];}
         else{fnew[ix][iy][iz][1]=UmUtau*f[ix][iy][iz][1]+Utau*feq(rho0,Jx0,Jy0,Jz0,1);
             fnew[ix][iy][iz][2]=UmUtau*f[ix][iy][iz][2]+Utau*feq(rho0,Jx0,Jy0,Jz0,2);}
 
-        if(iy==Ly-1 || iy==0){fnew[ix][iy][iz][4]=f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=f[ix][iy][iz][4];}
+        if(iy==Ly-1 || iy==0){fnew[ix][iy][iz][4]=k*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=k*f[ix][iy][iz][4];}
         else{fnew[ix][iy][iz][3]=UmUtau*f[ix][iy][iz][3]+Utau*feq(rho0,Jx0,Jy0,Jz0,3);
             fnew[ix][iy][iz][4]=UmUtau*f[ix][iy][iz][4]+Utau*feq(rho0,Jx0,Jy0,Jz0,4);}
 
-        if(iz==Lz-1 || iz==0){fnew[ix][iy][iz][6]=f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=f[ix][iy][iz][6];}
+        if(iz==Lz-1 || iz==0){fnew[ix][iy][iz][6]=k*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=k*f[ix][iy][iz][6];}
         else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
             fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
       }
