@@ -2,12 +2,13 @@
 #include <fstream>
 #include <cmath>
 
-const int Lx=5;
-const int Ly=5;
-const int Lz=5;
+const int Lx=40;
+const int Ly=40;
+const int Lz=40;
 
 const int Q=7;
 const double W0=1.0/4;
+const double k=1;
 
 const double C=0.5; // C<0.707 celdas/click
 const double TresC2=3*C*C;
@@ -34,6 +35,7 @@ public:
   void Inicie(double rho0,double Jx0,double Jy0, double Jz0);
   void ImponerCampos(int t);
   void Imprimase(const char * NombreArchivo);
+  void Imprimir(int t, int ix, int iy, int iz, const char * NombreArchivo);
 };
 LatticeBoltzmann::LatticeBoltzmann(void){
   //Cargar los pesos
@@ -84,15 +86,15 @@ void LatticeBoltzmann::Colisione(void){
         //Calcular las cantidades macroscópicas
         rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
         fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
-        if(ix==Lx-1){fnew[ix][iy][iz][2]=f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=f[ix][iy][iz][2];}
+        if(ix==Lx-1 || ix==0){fnew[ix][iy][iz][2]=f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=f[ix][iy][iz][2];}
         else{fnew[ix][iy][iz][1]=UmUtau*f[ix][iy][iz][1]+Utau*feq(rho0,Jx0,Jy0,Jz0,1);
             fnew[ix][iy][iz][2]=UmUtau*f[ix][iy][iz][2]+Utau*feq(rho0,Jx0,Jy0,Jz0,2);}
 
-        if(iy==Ly-1){fnew[ix][iy][iz][4]=f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=f[ix][iy][iz][4];}
-        else{fnew[ix][iy][iz][4]=UmUtau*f[ix][iy][iz][3]+Utau*feq(rho0,Jx0,Jy0,Jz0,3);
+        if(iy==Ly-1 || iy==0){fnew[ix][iy][iz][4]=f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=f[ix][iy][iz][4];}
+        else{fnew[ix][iy][iz][3]=UmUtau*f[ix][iy][iz][3]+Utau*feq(rho0,Jx0,Jy0,Jz0,3);
             fnew[ix][iy][iz][4]=UmUtau*f[ix][iy][iz][4]+Utau*feq(rho0,Jx0,Jy0,Jz0,4);}
 
-        if(iz==Lz-1){fnew[ix][iy][iz][6]=f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=f[ix][iy][iz][6];}
+        if(iz==Lz-1 || iz==0){fnew[ix][iy][iz][6]=f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=f[ix][iy][iz][6];}
         else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
             fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
       }
@@ -102,7 +104,8 @@ void LatticeBoltzmann::Adveccione(void){
     for(int iy=0;iy<Ly;iy++)
       for(int iz=0;iz<Lz;iz++)
         for(int i=0;i<Q;i++)
-          f[(ix+V[0][i]+Lx)%Lx][(iy+V[1][i]+Ly)%Ly][(iz+V[2][i]+Lz)%Lz][i]=fnew[ix][iy][iz][i];
+          if(ix+V[0][i]<Lx && iy+V[1][i]<Ly && iz+V[2][i]<Lz && ix+V[0][i]>=0 && iy+V[1][i]>=0 && iz+V[2][i]>=0)
+            f[ix+V[0][i]][iy+V[1][i]][iz+V[2][i]][i]=fnew[ix][iy][iz][i];
 }
 void LatticeBoltzmann::Inicie(double rho0,double Jx0,double Jy0, double Jz0){
   for(int ix=0;ix<Lx;ix++)
@@ -113,7 +116,7 @@ void LatticeBoltzmann::Inicie(double rho0,double Jx0,double Jy0, double Jz0){
 }
 void LatticeBoltzmann::ImponerCampos(int t){
   int i,ix,iy,iz; double lambda,omega,rho0,Jx0,Jy0,Jz0;
-  lambda=10; omega=2*M_PI/lambda; ix=Lx/2; iy=Ly/2; iz=Lz/2;
+  lambda=100; omega=2*M_PI/lambda; ix=Lx/2; iy=Ly/2; iz=Lz/2;
   rho0=10*sin(omega*t); Jx0=Jx(ix,iy,iz,false); Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
   for(i=0;i<Q;i++)
     fnew[ix][iy][iz][i]=feq(rho0,Jx0,Jy0,Jz0,i);
@@ -122,49 +125,56 @@ void LatticeBoltzmann::Imprimase(const char * NombreArchivo){
   std::ofstream MiArchivo(NombreArchivo); double rho0,Jx0,Jy0,Jz0;
   for(int ix=0;ix<Lx;ix++){
     for(int iy=0;iy<Ly;iy++){
-      for(int iz=0;iz<Lz;iz++){
-        rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false); Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
-        MiArchivo<<ix<<" "<<iy<<" "<<iz<<" "<<Jx0<<" "<<Jy0<<" "<<Jz0<<" "<<'\n';
-      }
-      MiArchivo<<'\n';
+      //for(int iz=0;iz<Lz;iz++){
+        int z=20;
+        rho0=rho(ix,iy,iz,false);  //Jx0=Jx(ix,iy,iz,false); Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+        MiArchivo<<ix<<" "<<iy<<" "<<rho0<<'\n';
+      //}
+      //MiArchivo<<'\n';
     }
     MiArchivo<<'\n';
   }
   MiArchivo.close();
 }
-
-/*
-int main(void){
-  std::cout << "Hola0" << std::endl;
-  LatticeBoltzmann Ondas;
-  int t,tmax=2;
-  
-  Ondas.Inicie(0,0,0,0);
-  for(t=0;t<tmax;t++){
-    std::cout << "Hola1" << std::endl;
-    Ondas.Colisione();
-    std::cout << "Hola2" << std::endl;
-    Ondas.ImponerCampos(t);
-    std::cout << "Hola3" << std::endl;
-    Ondas.Adveccione();
-  }
-  Ondas.Imprimase("Ondas.dat");
-
-  return 0;
+void LatticeBoltzmann::Imprimir(int t, int ix, int iy, int iz, const char * NombreArchivo){
+  double rho0 = rho(ix,iy,iz,false);
+  std::ofstream ofs;
+  ofs.open(NombreArchivo, std::ofstream::out | std::ofstream::app);
+  ofs << t << '\t' << rho0 << '\n';
+  ofs.close();
 }
-*/
+
+
 int main(void)
 {
   LatticeBoltzmann Ondas;
-  int t,tmax=10;
+  int t,tmax=1000;
+
+  // Estos comandos se descomentan si se quiere guardar el gif
+  /*
+  std::cout << "set terminal gif animate" << std::endl;
+  std::cout << "set output 'pelicula0.gif'" << std::endl;
+  */
+  //Estos comandos se descomentan para hacer el gif
+  /*
+  std::cout << "set pm3d" << std::endl;
+  std::cout << "set palette defined (-1 \"red\", 0 \"white\", 1 \"blue\")" << std::endl;
+  std::cout << "set cbrange[-1:1]" << std::endl;
+  std::cout << "set xrange[-1:41]; set yrange[-1:41]; set zrange[-1:5]" << std::endl;
+  */
 
   Ondas.Inicie(0,0,0,0);
   for(t=0;t<tmax;t++){
     Ondas.Colisione();
     Ondas.ImponerCampos(t);
     Ondas.Adveccione();
+    //Este comando se tiene para graficar la amplitud en función del tiempo en el punto x,y,z
+    Ondas.Imprimir(t,25,25,25,"datos.dat");
+    //Estos comandos son los que permiten hacer el gif
+    //Ondas.Imprimase("Ondas.dat");
+    //std::cout << "splot 'Ondas.dat'" << std::endl;
   }
-  Ondas.Imprimase("Ondas.dat");
+  //Ondas.Imprimase("Ondas.dat");
 
   return 0;
 }
