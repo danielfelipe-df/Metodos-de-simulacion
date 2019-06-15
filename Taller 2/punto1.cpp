@@ -71,7 +71,7 @@ void LatticeGas::Colisione(Crandom & ran64){
       }
       else if(ran64.r()<(p0+p) && ran64.r()>p0 ){
         for(int k=0;k<4;k++)
-	  nnew[i][j][(1+k)%4]=n[i][j][k];//90 grados
+          nnew[i][j][(1+k)%4]=n[i][j][k];//90 grados
       }
       else if(ran64.r()<(p0+p+p1)&&ran64.r()>(p0+p) ){
         for(int k=0;k<4;k++)
@@ -97,11 +97,12 @@ void LatticeGas::Inicie(int B, double mu, double sigma, Crandom & ran64){
   V[0][0]=1;   V[1][0]=0; V[2][0]=-1;  V[3][0]=0;
   V[0][1]=0;   V[1][1]=1; V[2][1]=0;  V[3][1]=-1;
   //iniciar los contenidos
-  int i,k,b;
-  for(i=0;i<Lx;i++){
-    for(int j=0;j<Ly;j++){
+  int i,k,b,j;
+  for(i=0;i<Lx;i++)
+    for(j=0;j<Ly;j++)
       for(k=0;k<4;k++)
-	n[i][j][k]=nnew[i][j][k]=0;
+        n[i][j][k]=nnew[i][j][k]=0;
+
   while(B>0){ // colocar B bolitas
     i=(int)ran64.gauss(mu,sigma); if(i<0) i=0; if(i>Lx-1) i=Lx-1; // genera un numero que no se sale de la celda
     k=(int)4*ran64.r(); // genera un mumero entre 0 y 3
@@ -110,16 +111,13 @@ void LatticeGas::Inicie(int B, double mu, double sigma, Crandom & ran64){
       n[i][j][k]=1;B--; // reduce a B
     }
   }
-      
-    }
-  }
 }
 
 int main(void){
   LatticeGas Difusion;
   Crandom ran64(1);
   int B=600; double mu=Lx/2.0,sigma=16;
-  int t, tmax=350;
+  int t, tmax=10;
   Difusion.Inicie(B,mu,sigma,ran64);
   // Difusion.Show(false);
   ofstream file("dat.dat");
