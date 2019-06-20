@@ -27,9 +27,9 @@ public:
   double rho(int ix,int iy,bool UseNew);
   double Jx(int ix,int iy,bool UseNew);
   double Jy(int ix,int iy,bool UseNew);
-  double feq(double rho0,double Jx0,double Jy0,int i);
-  double Ccelda(int ix, int iy){return 0.5;};
-  double AUX(double Ccelda){return 1-(1-W0)*3*Ccelda*Ccelda;};
+  double feq(double rho0,double Jx0,double Jy0,int i, double Ccelda);
+  double Ccelda(int ix, int iy);
+  //double AUX(double Ccelda){return 1-(1-W0)*3*Ccelda*Ccelda;};
   void Colisione(void);
   void Adveccione(void);
   void Inicie(double rho0,double Jx0,double Jy0);
@@ -66,11 +66,11 @@ double LatticeBoltzmann::Jy(int ix,int iy,bool UseNew){
     if(UseNew) suma+=fnew[ix][iy][i]*V[1][i]; else suma+=f[ix][iy][i]*V[1][i];
   return suma;
 }
-double LatticeBoltzmann::feq(double rho0,double Jx0,double Jy0,int i){
+double LatticeBoltzmann::feq(double rho0,double Jx0,double Jy0,int i, double Ccelda){
   if(i==0)
-    return rho0*AUX(Ccelda(0,0));
+    return rho0*(1-(1-W0)*3*Ccelda*Ccelda);
   else
-    return w[i]*(3*Ccelda(0,0)*Ccelda(0,0)*rho0+3*(V[0][i]*Jx0+V[1][i]*Jy0));
+    return w[i]*(3*Ccelda*Ccelda*rho0+3*(V[0][i]*Jx0+V[1][i]*Jy0));
 }
 void LatticeBoltzmann::Colisione(void){
   int ix,iy,i; double rho0,Jx0,Jy0;
@@ -80,20 +80,20 @@ void LatticeBoltzmann::Colisione(void){
       //Calcular las cantidades macroscópicas
       rho0=rho(ix,iy,false);  Jx0=Jx(ix,iy,false);  Jy0=Jy(ix,iy,false);
       for(i=0;i<Q;i++)
-	fnew[ix][iy][i]=UmUtau*f[ix][iy][i]+Utau*feq(rho0,Jx0,Jy0,i);
+        fnew[ix][iy][i]=UmUtau*f[ix][iy][i]+Utau*feq(rho0,Jx0,Jy0,i,Ccelda(ix,iy));
     }
 }
 void LatticeBoltzmann::Adveccione(void){
   for(int ix=0;ix<Lx;ix++)
     for(int iy=0;iy<Ly;iy++)
       for(int i=0;i<Q;i++)
-	f[(ix+V[0][i]+Lx)%Lx][(iy+V[1][i]+Ly)%Ly][i]=fnew[ix][iy][i];
+        f[(ix+V[0][i]+Lx)%Lx][(iy+V[1][i]+Ly)%Ly][i]=fnew[ix][iy][i];
 }
 void LatticeBoltzmann::Inicie(double rho0,double Jx0,double Jy0){
   for(int ix=0;ix<Lx;ix++)
     for(int iy=0;iy<Ly;iy++)
       for(int i=0;i<Q;i++)
-	f[ix][iy][i]=feq(rho0,Jx0,Jy0,i);
+        f[ix][iy][i]=feq(rho0,Jx0,Jy0,i,Ccelda(ix,iy));
 }
 void LatticeBoltzmann::ImponerCampos(int t){
   int i,ix,iy; double lambda,omega,rho0,Jx0,Jy0;
@@ -101,7 +101,7 @@ void LatticeBoltzmann::ImponerCampos(int t){
   for(iy=0;iy<Ly;iy++){
    rho0=10*sin(omega*t); Jx0=Jx(ix,iy,false); Jy0=Jy(ix,iy,false);
    for(i=0;i<Q;i++){
-     fnew[ix][iy][i]=feq(rho0,Jx0,Jy0,i);}
+     fnew[ix][iy][i]=feq(rho0,Jx0,Jy0,i,Ccelda(ix,iy));}
    }
 }
 void LatticeBoltzmann::Imprimase(const char * NombreArchivo){
@@ -116,11 +116,15 @@ void LatticeBoltzmann::Imprimase(const char * NombreArchivo){
   }
   MiArchivo.close();
 }
+double LatticeBoltzmann::Ccelda(int ix, int iy){
+ int ix0=100;
+ return 0.5/(0.5*tanh(ix-ix0)+1.5);
+}
 
 
 int main(void){
   LatticeBoltzmann Ondas;
-  int t,tmax=400;
+  int t,tmax=1000;
 
   // Estos comandos se descomentan si se quiere guardar el gif
   
@@ -129,11 +133,11 @@ int main(void){
   
   //Estos comandos se descomentan para hacer el gif
 
-  //cout << "set pm3d map" << endl;
-  cout << "set size ratio 1" << endl;
+  cout << "set pm3d map" << endl;
+  //cout << "set size ratio 1" << endl;
   //cout << "set palette defined (-1 \"red\", 0 \"white\", 1 \"blue\")" << endl;
   //cout << "set cbrange[-1:1]" << endl;
-  cout << "set xrange[0:200]; set yrange[0:200]" << endl;
+  //cout << "set xrange[0:200]; set yrange[0:200]" << endl;
 
   Ondas.Inicie(0,0,0);
   for(t=0;t<tmax;t++){
@@ -141,11 +145,12 @@ int main(void){
     Ondas.ImponerCampos(t);
     Ondas.Adveccione();
     //Estos comandos son los que permiten hacer el gif
-    Ondas.Imprimase("ondas.dat");
-    std::cout << "splot 'ondas.dat'" << std::endl;
+    //Ondas.Imprimase("ondas.dat");
+    //std::cout << "splot 'ondas.dat'" << std::endl;
   }
 
-  //Ondas.Imprimase("Ondas.dat");
+  Ondas.Imprimase("Ondas.dat");
+  //std::cout << "splot 'Ondas.dat'" << std::endl;
 
   return 0;
 }
