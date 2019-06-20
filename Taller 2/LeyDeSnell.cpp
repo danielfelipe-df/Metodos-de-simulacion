@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <cmath>
 using namespace std;
@@ -122,14 +122,14 @@ double LatticeBoltzmann::Ccelda(int ix, int iy){
 
 int main(void){
   LatticeBoltzmann Ondas;
-  int t,tmax=1000;
+  int t,tmax=10;
 
   // Estos comandos se descomentan si se quiere guardar el gif
   //std::cout << "set terminal gif animate" << std::endl;
   //std::cout << "set output 'ondas.gif'" << std::endl;
   
   //Estos comandos se descomentan para hacer el gif
-   cout << "set pm3d map" << endl;
+   cout << "set pm3d" << endl;
   //cout << "set size ratio 1" << endl;
   //cout << "set palette defined (-1 \"red\", 0 \"white\", 1 \"blue\")" << endl;
   //cout << "set cbrange[-1:1]" << endl;
@@ -141,11 +141,11 @@ int main(void){
     Ondas.ImponerCampos(t);
     Ondas.Adveccione();
     //Estos comandos son los que permiten hacer el gif
-    //Ondas.Imprimase("ondas.dat");
-    //std::cout << "splot 'ondas.dat'" << std::endl;
+    Ondas.Imprimase("ondas.dat");
+    cout << "splot 'ondas.dat'" << endl;
   }
 
-  Ondas.Imprimase("Ondas.dat");
+  //Ondas.Imprimase("Ondas.dat");
   //std::cout << "splot 'Ondas.dat'" << std::endl;
 
   return 0;
