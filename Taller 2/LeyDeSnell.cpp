@@ -99,7 +99,7 @@ void LatticeBoltzmann::Inicie(double rho0,double Jx0,double Jy0){
 }
 void LatticeBoltzmann::ImponerCampos(int t){
   int i,ix,iy; double lambda,omega,rho0,Jx0,Jy0,c;
-  lambda=20; ix=0; //ix=Lx/2; iy=Ly/2;
+  lambda=10; ix=0; //Primera columna, todos los valores de iy (filas)
   for(iy=0;iy<Ly;iy++){
     c = Ccelda(ix,iy); omega=2*M_PI*c/lambda; rho0=10*sin(omega*t); Jx0=Jx(ix,iy,false); Jy0=Jy(ix,iy,false);
     for(i=0;i<Q;i++){
@@ -127,26 +127,25 @@ double LatticeBoltzmann::Ccelda(int ix, int iy){
 
 int main(void){
   LatticeBoltzmann Ondas;
-  int t,tmax=100;
+  int t,tmax=400;
 
   // Estos comandos se descomentan si se quiere guardar el gif
   std::cout << "set terminal gif animate" << std::endl;
-  std::cout << "set output 'ondas_costado.gif'" << std::endl;
+  std::cout << "set output 'OndasTest.gif'" << std::endl;
   
   //Estos comandos se descomentan para hacer el gif
-   cout << "set pm3d" << endl;
+  cout << "set pm3d" << endl;
   cout << "set size ratio 1" << endl;
   cout << "set palette defined (-5 \"red\", 0 \"white\", 5 \"blue\")" << endl;
   cout << "set cbrange[-5:5]" << endl;
   cout << "set xrange[0:50]; set yrange[0:200]; set zrange[-10:10]" << endl;
-  cout << "set view 90,0" << endl;
+  //cout << "set view 90,0" << endl;
 
   Ondas.Inicie(0,0,0);
   for(t=0;t<tmax;t++){
     Ondas.Colisione();
     Ondas.ImponerCampos(t);
     Ondas.Adveccione();
-    //Estos comandos son los que permiten hacer el gif
     Ondas.Imprimase("ondas.dat");
     cout << "splot 'ondas.dat'" << endl;
   }
