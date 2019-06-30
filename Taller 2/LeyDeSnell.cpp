@@ -119,16 +119,17 @@ void LatticeBoltzmann::Imprimase(const char * NombreArchivo){
   }
   MiArchivo.close();
 }
+
 //Se define la función para calcular C en cada celda
 double LatticeBoltzmann::Ccelda(int ix, int iy){
- int ix0=25; double n = 0.5*tanh(ix-ix0)+1.5;
+ float angulo=M_PI/4; int ix0=iy*tan(angulo); double n = 0.5*tanh(ix-ix0)+1.5;
  return 0.5/n; //Suavizado realizado, antes de ix0 n=1, después n=2
 }
 
 int main(void){
   LatticeBoltzmann Ondas;
   int t,tmax=400;
-
+/*
   // Estos comandos se descomentan si se quiere guardar el gif
   std::cout << "set terminal gif animate" << std::endl;
   std::cout << "set output 'OndasTest.gif'" << std::endl;
@@ -138,19 +139,19 @@ int main(void){
   cout << "set size ratio 1" << endl;
   cout << "set palette defined (-5 \"red\", 0 \"white\", 5 \"blue\")" << endl;
   cout << "set cbrange[-5:5]" << endl;
-  cout << "set xrange[0:50]; set yrange[0:200]; set zrange[-10:10]" << endl;
-  //cout << "set view 90,0" << endl;
+  cout << "set xrange[0:400]; set yrange[0:200]; set zrange[-10:10]" << endl;
+  cout << "set view 90,0" << endl;
+*/
 
   Ondas.Inicie(0,0,0);
   for(t=0;t<tmax;t++){
     Ondas.Colisione();
     Ondas.ImponerCampos(t);
     Ondas.Adveccione();
-    Ondas.Imprimase("ondas.dat");
-    cout << "splot 'ondas.dat'" << endl;
+    //Ondas.Imprimase("ondas.dat");
+    //cout << "splot 'ondas.dat'" << endl;
   }
-
-  //Ondas.Imprimase("Ondas.dat");
+  Ondas.Imprimase("Ondas.dat");
   //std::cout << "splot 'Ondas.dat'" << std::endl;
 
   return 0;
