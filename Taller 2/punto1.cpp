@@ -23,45 +23,39 @@ public:
   void Show(bool ImprimirNew);
   void Colisione(Crandom & ran64);
   void Adveccione(void);
-  double GetSigma2(int N);
+  double GetSigma2(void);
 };
 
 
-double LatticeGas::GetSigma2(int N)
+double LatticeGas::GetSigma2(void)
 {
-  int i,k,j;
+  int i,k,j,N=0;
   double xprom=0, yprom =0;
   double varx= 0, vary=0, covarxy=0, sigma2=0;
   
   for(i=0; i<Lx; i++){
     for(j=0; j<Ly; j++){
       for(k=0; k<Q; k++){
-
-	xprom += i*n[i][j][k];
-	yprom += j*n[i][j][k];
-      }}}
+	N += n[i][j][k];
+	xprom += i*n[i][j][k];	yprom += j*n[i][j][k];
+	varx += i*i*n[i][j][k];	vary += j*j*n[i][j][k];
+	covarxy += j*i*n[i][j][k];
+      }
+    }
+  }
   xprom = xprom/N;
   yprom = yprom/N;
-
-  
-  for(i=0; i<Lx; i++){
-    for(j=0; j<Ly; j++){
-      for(k=0; k<Q; k++){
-
-	varx += (i-xprom)*(i-xprom)*n[i][j][k];
-	vary += (j-yprom)*(j-yprom)*n[i][j][k];
-	covarxy += (j-yprom)*(i-xprom)*n[i][j][k];
-	
-      }}}
-
-  sigma2 = (varx + vary + 2*covarxy)/N;
+  varx = (varx-N*xprom*xprom)/(N-1);
+  vary = (vary-N*yprom*yprom)/(N-1);
+  covarxy = (covarxy-N*xprom*yprom)/(N-1);
+  sigma2 = varx + vary + 2*covarxy;
   return sigma2;
 }
 
 
 
 
-  void LatticeGas::Adveccione(void){
+void LatticeGas::Adveccione(void){
   for(int i=0;i<Lx;i++)//para cada celda
     for(int j=0; j<Ly; j++)
       for(int k=0;k<Q;k++)
@@ -129,23 +123,23 @@ int main(void){
   Difusion.Inicie(B,mu,sigma,ran64,mu2);
   ofstream file("dat.dat");
   for(t=0;t<tmax;t++){
-    file<< t << " " << Difusion.GetSigma2(B) << endl;
+    file<< t << " " << Difusion.GetSigma2() << endl;
     Difusion.Colisione(ran64);
     Difusion.Adveccione();
   }
   file.close();
   
-      cout<<"f(x)=m*x+b "<<endl;
+  cout<<"f(x)=m*x+b "<<endl;
   cout<<"a="<<Pendiente<<endl;
-  cout<<"fit f(x) \"dat.dat\" u 1:2 via m,b"<<endl;
+  cout<<"fit f(x) 'dat.dat' u 1:2 via m,b"<<endl;
   cout<<"title_f(m,b)=sprintf('f(x)=%.2fx+ %.2f',m,b)"<<endl;
   cout<<"g(x)=a*x+b"<<endl;
   cout<<"title_g(a,b)=sprintf('g(x)=%.2gx+ %.2g',a,b)"<<endl;
   cout<<"set terminal png"<<endl;
-  cout<<"set output \" P0="<<p0<<"P="<<p<<" \"" <<endl;
-  cout<<"set xlabel \"t\" "<<endl;
-  cout<<"set ylabel \"sigma cuadrado\""<<endl;
-  cout<<"plot f(x) t title_f(m,b), \"dat.dat\" title\"datos\" w l lt rgb \"black\" ,g(x) t title_g(a,b)"<<endl;
+  cout<<"set output 'P0="<<p0<<"P="<<p<<".png'" <<endl;
+  cout<<"set xlabel 't' "<<endl;
+  cout<<"set ylabel 'sigma cuadrado'"<<endl;
+  cout<<"plot f(x) t title_f(m,b), g(x) t title_g(a,b)"<<endl;
   
   return 0;
 }
