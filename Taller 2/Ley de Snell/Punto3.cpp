@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <cmath>
 using namespace std;
@@ -8,11 +8,6 @@ const int Ly=200;
 
 const int Q=5;
 const double W0=1.0/3;
-
-//const double C=0.5; // C<0.707 celdas/click
-//const double C2=C*C;
-//const double TresC2=3*C2;
-//const double Aux0=1-TresC2*(1-W0);
 
 const double tau=0.5;
 const double Utau=1.0/tau;
@@ -30,8 +25,8 @@ public:
   double Jy(int ix,int iy,bool UseNew);
   double feq(int ix,int iy,int i,double rho0,double Jx0,double Jy0);
   void Inicie(double rho0,double Jx0,double Jy0);
-  void ImponerCampos(int ix,int iy,double & rho0,double & Jx0,double & Jy0,int t);
-  void Colisione(int t);
+  void ImponerCampos(int t,int ix);
+  void Colisione(void);
   void Adveccione(void);
   void Imprimase(char const * NombreArchivo,int t);
   void ImprimaUnaLinea(char const * NombreArchivo,int t);
@@ -78,10 +73,15 @@ double LatticeBoltzmann::feq(int ix,int iy,int i,double rho0,double Jx0,double J
   else
     return w[i]*(TresC2*rho0+3*(V[0][i]*Jx0+V[1][i]*Jy0));
 }
-void LatticeBoltzmann::ImponerCampos(int ix,int iy,double & rho0,double & Jx0,double & Jy0,int t){
-  double A=10,lambda=10,omega=2*M_PI*Ccelda(ix,iy)/lambda;
-    if(ix==0)
-    rho0=A*sin(omega*t); //fuente
+void LatticeBoltzmann::ImponerCampos(int t, int ix){
+  double A=10,lambda=10,omega,rho0, Jx0, Jy0; //fuente
+  for(int iy=0; iy<Ly; iy++){
+    omega = 2*M_PI*Ccelda(ix,iy)/lambda;  rho0 = A*sin(omega*t);
+    Jx0 = Jx(ix,iy,false);  Jy0 = Jy(ix,iy,false);
+    for(int i=0; i<Q; i++){
+      fnew[ix][iy][i]=feq(ix,iy,i,rho0,Jx0,Jy0);
+    }
+  }
 }
 
 void LatticeBoltzmann::Inicie(double rho0,double Jx0,double Jy0){
@@ -89,16 +89,15 @@ void LatticeBoltzmann::Inicie(double rho0,double Jx0,double Jy0){
   for(ix=0;ix<Lx;ix++)
     for(iy=0;iy<Ly;iy++)
       for(i=0;i<Q;i++)
-	f[ix][iy][i]=feq(ix,iy,i,rho0,Jx0,Jy0);
+        f[ix][iy][i]=feq(ix,iy,i,rho0,Jx0,Jy0);
 }
-void LatticeBoltzmann::Colisione(int t){ //de f a fnew
+void LatticeBoltzmann::Colisione(void){ //de f a fnew
   int ix,iy,i; double rho0,Jx0,Jy0;
   for(ix=0;ix<Lx;ix++)
     for(iy=0;iy<Ly;iy++){ //Para cada celda
       rho0=rho(ix,iy,false);  Jx0=Jx(ix,iy,false);  Jy0=Jy(ix,iy,false); //Calculo campos
-	ImponerCampos(ix,iy,rho0,Jx0,Jy0,t);     
-	for(i=0;i<Q;i++) //para cada dirección
-	  fnew[ix][iy][i]=UmUtau*f[ix][iy][i]+Utau*feq(ix,iy,i,rho0,Jx0,Jy0); //evoluciono
+      for(i=0;i<Q;i++) //para cada dirección
+        fnew[ix][iy][i]=UmUtau*f[ix][iy][i]+Utau*feq(ix,iy,i,rho0,Jx0,Jy0); //evoluciono
     }
 }
 void LatticeBoltzmann::Adveccione(void){ //de fnew a f
@@ -106,14 +105,13 @@ void LatticeBoltzmann::Adveccione(void){ //de fnew a f
   for(ix=0;ix<Lx;ix++)
     for(iy=0;iy<Ly;iy++)
       for(i=0;i<Q;i++)
-	f[(ix+V[0][i]+Lx)%Lx][(iy+V[1][i]+Ly)%Ly][i]=fnew[ix][iy][i];
+        f[(ix+V[0][i]+Lx)%Lx][(iy+V[1][i]+Ly)%Ly][i]=fnew[ix][iy][i];
 }
 void LatticeBoltzmann::Imprimase(char const * NombreArchivo,int t){
   ofstream MiArchivo(NombreArchivo); double rho0,Jx0,Jy0;
   for(int ix=0;ix<Lx/2.0;ix++){
     for(int iy=0;iy<Ly;iy++){
       rho0=rho(ix,iy,true);   Jx0=Jx(ix,iy,false);  Jy0=Jy(ix,iy,false);
-      ImponerCampos(ix,iy,rho0,Jx0,Jy0,t);
       MiArchivo<<ix<<" "<<iy<<" "<<rho0<<endl;
     }
     MiArchivo<<endl;
@@ -125,7 +123,6 @@ void LatticeBoltzmann::ImprimaUnaLinea(char const * NombreArchivo,int t){
   int ix=Lx/2;
   for(int iy=0;iy<Ly;iy++){
     rho0=rho(ix,iy,true);   Jx0=Jx(ix,iy,false);  Jy0=Jy(ix,iy,false);
-    ImponerCampos(ix,iy,rho0,Jx0,Jy0,t);
     MiArchivo<<iy<<" "<<rho0<<endl;
   }
   MiArchivo.close();
@@ -142,14 +139,23 @@ int main(void){
   Ondas.Inicie(rho0,Jx0,Jy0);
   //Corra
   for(t=0;t<tmax;t++){
-    Ondas.Colisione(t);
+    Ondas.Colisione();
+    Ondas.ImponerCampos(t,0);
     Ondas.Adveccione();
   }
   
   //Mostrar Resultado.
   Ondas.Imprimase("Ondas3.dat",t);
-  Ondas.ImprimaUnaLinea("CorteCentral3.dat",t);
 
+  /*
+  cout << "set pm3d map" << endl;
+  cout << "set size ratio 1" << endl;
+  cout << "set terminal png" << endl;
+  cout << "set output 'grafica_3.png'" << endl;
+  cout << "set xrange[0:200]; set yrange[0:200]" << endl;
+  cout << "set title 'Punto 3'" << endl;
+  cout << "splot 'Ondas3.dat' " << endl;
+  */
   return 0;
 }
 

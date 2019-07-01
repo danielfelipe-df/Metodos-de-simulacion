@@ -1,6 +1,7 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <cmath>
+#include <string>
 using namespace std;
 
 const int Lx=400;
@@ -8,11 +9,6 @@ const int Ly=200;
 
 const int Q=5;
 const double W0=1.0/3;
-
-//const double C=0.5; // C<0.707 celdas/click
-//const double C2=C*C;
-//const double TresC2=3*C2;
-//const double Aux0=1-TresC2*(1-W0);
 
 const double tau=0.5;
 const double Utau=1.0/tau;
@@ -28,15 +24,15 @@ public:
   double rho(int ix,int iy,bool UseNew);
   double Jx(int ix,int iy,bool UseNew);
   double Jy(int ix,int iy,bool UseNew);
-  double feq(int ix,int iy,int i,double rho0,double Jx0,double Jy0);
-  void Inicie(double rho0,double Jx0,double Jy0);
-  void ImponerCampos(int ix,int iy,double & rho0,double & Jx0,double & Jy0,int t);
-  void Colisione(int t);
+  double feq(int ix,int iy,int i,double rho0,double Jx0,double Jy0, int angle);
+  void Inicie(double rho0,double Jx0,double Jy0, int angle);
+  void ImponerCampos(int t, int ix, int angle);
+  void Colisione(int angle);
   void Adveccione(void);
-  void Imprimase(char const * NombreArchivo,int t);
-  void ImprimaUnaLinea(char const * NombreArchivo,int t);
+  void Imprimase(string NombreArchivo);
+  void ImprimaUnaLinea(string NombreArchivo);
   //velocidad de la onda
-  double Ccelda(int ix,int iy);
+  double Ccelda(int ix,int iy, int angle);
 };
 LatticeBoltzmann::LatticeBoltzmann(void){
   w[0]=W0;
@@ -71,34 +67,38 @@ double LatticeBoltzmann::Jy(int ix,int iy,bool UseNew){
   else    suma+=V[1][i]*f[ix][iy][i];
   return suma;
 }
-double LatticeBoltzmann::feq(int ix,int iy,int i,double rho0,double Jx0,double Jy0){
-  double C=Ccelda(ix,iy), C2=C*C, TresC2=3*C2, Aux0=1-TresC2*(1-W0);
+double LatticeBoltzmann::feq(int ix,int iy,int i,double rho0,double Jx0,double Jy0, int angle){
+  double C=Ccelda(ix,iy,angle), C2=C*C, TresC2=3*C2, Aux0=1-TresC2*(1-W0);
   if(i==0)
     return rho0*Aux0;
   else
     return w[i]*(TresC2*rho0+3*(V[0][i]*Jx0+V[1][i]*Jy0));
 }
-void LatticeBoltzmann::ImponerCampos(int ix,int iy,double & rho0,double & Jx0,double & Jy0,int t){
-  double A=10,lambda=10,omega=2*M_PI*Ccelda(ix,iy)/lambda;
-    if(ix==0)
-    rho0=A*sin(omega*t); //fuente
+void LatticeBoltzmann::ImponerCampos(int t,int ix, int angle){
+  double A=10,lambda=10,omega,rho0, Jx0, Jy0; //fuente
+  for(int iy=0; iy<Ly; iy++){
+    omega = 2*M_PI*Ccelda(ix,iy,angle)/lambda;  rho0 = A*sin(omega*t);
+    Jx0 = Jx(ix,iy,false);  Jy0 = Jy(ix,iy,false);
+    for(int i=0; i<Q; i++){
+      fnew[ix][iy][i]=feq(ix,iy,i,rho0,Jx0,Jy0,angle);
+    }
+  }
 }
 
-void LatticeBoltzmann::Inicie(double rho0,double Jx0,double Jy0){
+void LatticeBoltzmann::Inicie(double rho0,double Jx0,double Jy0, int angle){
   int ix,iy,i;
   for(ix=0;ix<Lx;ix++)
     for(iy=0;iy<Ly;iy++)
       for(i=0;i<Q;i++)
-	f[ix][iy][i]=feq(ix,iy,i,rho0,Jx0,Jy0);
+        f[ix][iy][i]=feq(ix,iy,i,rho0,Jx0,Jy0,angle);
 }
-void LatticeBoltzmann::Colisione(int t){ //de f a fnew
+void LatticeBoltzmann::Colisione(int angle){ //de f a fnew
   int ix,iy,i; double rho0,Jx0,Jy0;
   for(ix=0;ix<Lx;ix++)
     for(iy=0;iy<Ly;iy++){ //Para cada celda
       rho0=rho(ix,iy,false);  Jx0=Jx(ix,iy,false);  Jy0=Jy(ix,iy,false); //Calculo campos
-	ImponerCampos(ix,iy,rho0,Jx0,Jy0,t);     
-	for(i=0;i<Q;i++) //para cada dirección
-	  fnew[ix][iy][i]=UmUtau*f[ix][iy][i]+Utau*feq(ix,iy,i,rho0,Jx0,Jy0); //evoluciono
+      for(i=0;i<Q;i++) //para cada dirección
+        fnew[ix][iy][i]=UmUtau*f[ix][iy][i]+Utau*feq(ix,iy,i,rho0,Jx0,Jy0,angle); //evoluciono
     }
 }
 void LatticeBoltzmann::Adveccione(void){ //de fnew a f
@@ -106,46 +106,33 @@ void LatticeBoltzmann::Adveccione(void){ //de fnew a f
   for(ix=0;ix<Lx;ix++)
     for(iy=0;iy<Ly;iy++)
       for(i=0;i<Q;i++)
-	f[(ix+V[0][i]+Lx)%Lx][(iy+V[1][i]+Ly)%Ly][i]=fnew[ix][iy][i];
+        f[(ix+V[0][i]+Lx)%Lx][(iy+V[1][i]+Ly)%Ly][i]=fnew[ix][iy][i];
 }
-void LatticeBoltzmann::Imprimase(char const * NombreArchivo,int t){
-  ofstream MiArchivo(NombreArchivo); double rho0,Jx0,Jy0;
+void LatticeBoltzmann::Imprimase(string NombreArchivo){
+  ofstream MiArchivo(NombreArchivo); double rho0;
   for(int ix=0;ix<Lx/2.0;ix++){
     for(int iy=0;iy<Ly;iy++){
-      rho0=rho(ix,iy,true);   Jx0=Jx(ix,iy,false);  Jy0=Jy(ix,iy,false);
-      ImponerCampos(ix,iy,rho0,Jx0,Jy0,t);
+      rho0=rho(ix,iy,true);
       MiArchivo<<ix<<" "<<iy<<" "<<rho0<<endl;
     }
     MiArchivo<<endl;
   }
   MiArchivo.close();
 }
-void LatticeBoltzmann::ImprimaUnaLinea(char const * NombreArchivo,int t){
-  ofstream MiArchivo(NombreArchivo); double rho0,Jx0,Jy0;
-   //Para y
-  /*
-  int ix=Lx/4.0;
-  for(int iy=0;iy<Ly;iy++){
-    rho0=rho(ix,iy,true);   Jx0=Jx(ix,iy,false);  Jy0=Jy(ix,iy,false);
-    ImponerCampos(ix,iy,rho0,Jx0,Jy0,t);
-    MiArchivo << iy << " " << rho0 << endl;
-  }
-  */
-  
+void LatticeBoltzmann::ImprimaUnaLinea(string NombreArchivo){
+  ofstream MiArchivo(NombreArchivo); double rho0;
   //Para X
   int iy=Ly/2.0;
   for(int ix=0;ix<Lx/2.0;ix++){
-    rho0=rho(ix,iy,true);   Jx0=Jx(ix,iy,false);  Jy0=Jy(ix,iy,false);
-    ImponerCampos(ix,iy,rho0,Jx0,Jy0,t);
+    rho0=rho(ix,iy,true);
     MiArchivo << ix << " " << rho0 << endl;
   }
   MiArchivo.close();
 }
 
-double LatticeBoltzmann::Ccelda(int ix, int iy){
-	double v_luz=0.5, theta=M_PI/9.0, x=100-(1.0/tan(M_PI/2.0-theta))*(100-iy), n=0.5*tanh(ix-x)+1.5; // La tanh permite cambiar suavemente de medio (n1=1, n2=2);
-	double C = v_luz/n;
-	return C;
+double LatticeBoltzmann::Ccelda(int ix, int iy, int angle){
+    double v_luz=0.5, theta=angle*M_PI/180, x=100-(1.0/tan(M_PI/2.0-theta))*(100-iy), n=0.5*tanh(ix-x)+1.5; // La tanh permite cambiar suavemente de medio (n1=1, n2=2);
+    return v_luz/n;
 	}
 //---------------- Funciones Globales --------
 
@@ -154,18 +141,31 @@ int main(void){
   int t,tmax=400;
 
   double rho0=0,Jx0=0,Jy0=0;
+  int theta[4] = {20,30,45,60};
 
-  //Inicie
-  Ondas.Inicie(rho0,Jx0,Jy0);
-  //Corra
-  for(t=0;t<tmax;t++){
-    Ondas.Colisione(t);
-    Ondas.Adveccione();
+  string archivo,ext,num;
+
+  for(int i=0; i<4; i++){
+    //Inicie
+    Ondas.Inicie(rho0,Jx0,Jy0, *(theta+i));
+    //Corra
+    for(t=0;t<tmax;t++){
+      Ondas.Colisione(*(theta+i));
+      Ondas.ImponerCampos(t,0,*(theta+i));
+      Ondas.Adveccione();
+    }
+    //Mostrar Resultado.
+    archivo = "Ondas_" + to_string(*(theta+i)) + ".dat";
+    Ondas.Imprimase(archivo);
+
+    cout << "set pm3d map" << endl;
+    cout << "set size ratio 1" << endl;
+    cout << "set terminal jpeg enhanced" << endl;
+    cout << "set output 'grafica_"<< *(theta+i) << ".jpg'" << endl;
+    cout << "set xrange[0:200]; set yrange[0:200]" << endl;
+    cout << "set title 'Punto 5 ("<< *(theta+i) << "°)'" << endl;
+    cout << "splot 'Ondas_"<< *(theta+i) << ".dat' " << endl;
   }
-  
-  //Mostrar Resultado.
-  Ondas.Imprimase("Ondas20.dat",t);
-  Ondas.ImprimaUnaLinea("CorteCentral20.dat",t);
 
   return 0;
 }
