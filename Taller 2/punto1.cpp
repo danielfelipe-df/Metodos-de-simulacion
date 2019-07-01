@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <cmath>
 #include <math.h>
@@ -23,22 +23,44 @@ public:
   void Show(bool ImprimirNew);
   void Colisione(Crandom & ran64);
   void Adveccione(void);
-  double GetSigma2(void);
+  double GetSigma2(int N);
 };
-double LatticeGas::GetSigma2(void)
+
+
+double LatticeGas::GetSigma2(int N)
 {
-  double N, xprom, sigma2;  int i,k, j;
-  for(xprom=0,sigma2=0,N=0, i=0; i<Lx; i++)
-    for(j=0; j<Ly; j++)
+  int i,k,j;
+  double xprom=0, yprom =0;
+  double varx= 0, vary=0, covarxy=0, sigma2=0;
+  
+  for(i=0; i<Lx; i++){
+    for(j=0; j<Ly; j++){
       for(k=0; k<Q; k++){
-	N+=n[i][j][k];
-	xprom+=pow((i*i)+(j*j),0.5)*n[i][j][k];
-	sigma2+=((i*i)+(j*j))*n[i][j][k];
-      }
-  xprom /= N;
-  sigma2 = (sigma2-N*xprom*xprom)/(N-1);
+
+	xprom += i*n[i][j][k];
+	yprom += j*n[i][j][k];
+      }}}
+  xprom = xprom/N;
+  yprom = yprom/N;
+
+  
+  for(i=0; i<Lx; i++){
+    for(j=0; j<Ly; j++){
+      for(k=0; k<Q; k++){
+
+	varx += (i-xprom)*(i-xprom)*n[i][j][k];
+	vary += (j-yprom)*(j-yprom)*n[i][j][k];
+	covarxy += (j-yprom)*(i-xprom)*n[i][j][k];
+	
+      }}}
+
+  sigma2 = (varx + vary + 2*covarxy)/N;
   return sigma2;
 }
+
+
+
+
   void LatticeGas::Adveccione(void){
   for(int i=0;i<Lx;i++)//para cada celda
     for(int j=0; j<Ly; j++)
@@ -102,17 +124,18 @@ int main(void){
   Crandom ran64(1);
   double D=p1/(2*(1-p1));
   double Pendiente=4*D;
-  int B=2400; double mu=Lx/2.0,sigma=32,mu2=Ly/2.0;
+  int B=2400; double mu=Lx/2.0,sigma=16,mu2=Ly/2.0;
   int t, tmax=350;
   Difusion.Inicie(B,mu,sigma,ran64,mu2);
   ofstream file("dat.dat");
   for(t=0;t<tmax;t++){
-    file << t << " " << Difusion.GetSigma2() << endl;
+    file<< t << " " << Difusion.GetSigma2(B) << endl;
     Difusion.Colisione(ran64);
     Difusion.Adveccione();
   }
   file.close();
-  cout<<"f(x)=m*x+b "<<endl;
+  
+      cout<<"f(x)=m*x+b "<<endl;
   cout<<"a="<<Pendiente<<endl;
   cout<<"fit f(x) \"dat.dat\" u 1:2 via m,b"<<endl;
   cout<<"title_f(m,b)=sprintf('f(x)=%.2fx+ %.2f',m,b)"<<endl;
@@ -123,5 +146,6 @@ int main(void){
   cout<<"set xlabel \"t\" "<<endl;
   cout<<"set ylabel \"sigma cuadrado\""<<endl;
   cout<<"plot f(x) t title_f(m,b), \"dat.dat\" title\"datos\" w l lt rgb \"black\" ,g(x) t title_g(a,b)"<<endl;
+  
   return 0;
 }
