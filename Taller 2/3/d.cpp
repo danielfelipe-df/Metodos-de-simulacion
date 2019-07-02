@@ -76,40 +76,35 @@ double LatticeBoltzmann::feq(double rho0,double Ux0,double Uy0,int i){
 }
 double LatticeBoltzmann::sigmaxx(int ix, int iy, double rho0){
   double Ux0 = 0, Uxx = 0;
+  Ux0 = Jx(ix,iy,false)/rho0;
   
-  for(int i=0;i<Q;i++){
-    Ux0 = Jx(ix,iy,true)/rho0;
-    Uxx += 3*w[i]*V[0][i]*Ux0;
-  }
+  for(int i=0;i<Q;i++){  Uxx += w[i]*V[0][i]*Ux0; }
   
-  return (-rho0/3) + visc*Uxx;
+  return (-rho0/3.0) + 6*visc*Uxx;
 }
 
 double LatticeBoltzmann::sigmayy(int ix, int iy, double rho0){
-  double Uy0 = 0, Uyy = 0;
+  double Uy0, Uyy = 0;
+  Uy0 = Jy(ix,iy,false)/rho0;
   
-  for(int i=0;i<Q;i++){
-    
-    Uy0 = Jy(ix,iy,true)/rho0;
-    Uyy += 3*w[i]*V[1][i]*Uy0;
-  }
+  for(int i=0;i<Q;i++){  Uyy += w[i]*V[1][i]*Uy0; }
   
-  return (-rho0/3) + visc*Uyy;
+  return (-rho0/3.0) + 6*visc*Uyy;
 }
 
 
 double LatticeBoltzmann::sigmaxy(int ix, int iy, double rho0){
-  double Uy0 = 0, Ux0=0, Uxy = 0, Uyx = 0;
-   for(int i=0;i<Q;i++){
-   
-     Uy0 = Jy(ix,iy,true)/rho0;
-     Uyx += 3*w[i]*V[0][i]*Uy0;
-     
-     Ux0 = Jx(ix,iy,true)/rho0;
-     Uxy += 3*w[i]*V[1][i]*Ux0;
+  double Uy0, Ux0, Uxy = 0, Uyx = 0;
+    Uy0 = Jy(ix,iy,false)/rho0;
+    Ux0 = Jx(ix,iy,false)/rho0;
+
+    for(int i=0;i<Q;i++){
+    
+     Uyx += w[i]*V[0][i]*Uy0;
+     Uxy += w[i]*V[1][i]*Ux0;
    }
    
-   return Uyx + Uxy;
+   return 3*visc*Uyx + 3*visc*Uxy;
 }
 
 
@@ -119,17 +114,19 @@ void LatticeBoltzmann::FuerzaporLongitudCircunferencia(int t){
   double sigmaxxP=0, sigmaxyP=0, sigmayyP=0;
   double dFx=0, dFy=0;
   double rho0=0, rho1=0,rho2=0,rho3=0;
+  double v = 0.5, u = 0.5;
+
   
   for(int ix=0;ix<Lx;ix++){
     for(int iy=0;iy<Ly;iy++){
       
   if((ix-ixc)*(ix-ixc)+(iy-iyc)*(iy-iyc)==R2){
     
-     rho0=rho(   ix,    iy,true);
-     rho1=rho( ix+1,    iy,true);
-     rho2=rho(   ix,  iy+1,true);
-     rho3=rho( ix+1,  iy+1,true);
-    double v = 0.5, u = 0.5;
+     rho0=rho(   ix,    iy,false);
+     rho1=rho( ix+1,    iy,false);
+     rho2=rho(   ix,  iy+1,false);
+     rho3=rho( ix+1,  iy+1,false);
+
     
     sigmaxxP = sigmaxx(ix,iy,rho0)*(1-v)*(1-u)+sigmaxx(ix+1,iy,rho1)*u*(1-v)+sigmaxx(ix,iy+1,rho2)*v*(1-u)+sigmaxx(ix+1,iy+1,rho3)*u*v;
     
@@ -141,10 +138,10 @@ void LatticeBoltzmann::FuerzaporLongitudCircunferencia(int t){
     dFy += sigmayyP + sigmaxyP;
     
   }
-  
+  else {dFx += 0; dFy +=0; }  
     }
   }
-  cout<<t<<' '<<dFy<<endl; 
+  cout<<t<<' '<<dFx<<endl; 
 }
 
 
