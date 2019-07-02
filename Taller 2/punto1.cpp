@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <cmath>
 #include <math.h>
@@ -19,7 +19,7 @@ private:
   int V[4][2];
   int n[Lx][Ly][Q], nnew[Lx][Ly][Q];//4 direcciones derecha 0 , arriba 1, izquierda 2, abajo 3
 public:
-  void Inicie(int B, double mu, double sigma, Crandom & ran64,double mu2);
+  void Inicie(int B, double mu1, double sigma, Crandom & ran64,double mu2);
   void Show(bool ImprimirNew);
   void Colisione(Crandom & ran64);
   void Adveccione(void);
@@ -63,18 +63,19 @@ void LatticeGas::Adveccione(void){
 }  
  
 void LatticeGas::Colisione(Crandom & ran64){
-  int i,j, k;
+  int i,j, k; double probabilidad;
   for(i=0;i<Lx;i++)
     for(j=0; j<Ly; j++){//ir celda por celda
-      if(ran64.r()<p0){
+      probabilidad = ran64.r();
+      if(probabilidad<p0){
         for( k=0;k<Q;k++)
           nnew[i][j][k]=n[i][j][k];//se deja igual
       }
-      else if(ran64.r()<p1 ){
+      else if(probabilidad<p1 ){
         for( k=0;k<Q;k++)
           nnew[i][j][(1+k)%Q]=n[i][j][k];//90 grados
       }
-      else if(ran64.r()<p2){
+      else if(probabilidad<p2){
         for( k=0;k<Q;k++)
           nnew[i][j][(2+k)%Q]=n[i][j][k];//180 grados
       }
@@ -93,7 +94,7 @@ void LatticeGas::Show(bool ImprimirNew){
       cout<<endl;
   }
 }
-void LatticeGas::Inicie(int B, double mu, double sigma, Crandom & ran64,double mu2){
+void LatticeGas::Inicie(int B, double mu1, double sigma, Crandom & ran64,double mu2){
   V[0][0]=1;   V[1][0]=0; V[2][0]=-1;  V[3][0]=0;
   V[0][1]=0;   V[1][1]=1; V[2][1]=0;  V[3][1]=-1;
   //iniciar los contenidos
@@ -104,7 +105,7 @@ void LatticeGas::Inicie(int B, double mu, double sigma, Crandom & ran64,double m
         n[i][j][k]=nnew[i][j][k]=0;
   
   while(B>0){ // colocar B bolitas
-    i=(int)ran64.gauss(mu,sigma); if(i<0) i=0; if(i>Lx-1) i=Lx-1; // genera un numero que no se sale de la celda
+    i=(int)ran64.gauss(mu1,sigma); if(i<0) i=0; if(i>Lx-1) i=Lx-1; // genera un numero que no se sale de la celda
     j=(int)ran64.gauss(mu2,sigma); if(j<0) j=0; if(j>Ly-1) j=Ly-1;
     k=(int)Q*ran64.r(); // genera un mumero entre 0 y Q-1
     
@@ -118,12 +119,12 @@ int main(void){
   Crandom ran64(1);
   double D=p1/(2*(1-p1));
   double Pendiente=4*D;
-  int B=2400; double mu=Lx/2.0,sigma=16,mu2=Ly/2.0;
+  int B=2400; double mu1=Lx/2.0,sigma=16,mu2=Ly/2.0;
   int t, tmax=350;
-  Difusion.Inicie(B,mu,sigma,ran64,mu2);
-  ofstream file("dat.dat");
+  Difusion.Inicie(B,mu1,sigma,ran64,mu2);
+  ofstream file("dat.csv");
   for(t=0;t<tmax;t++){
-    file<< t << " " << Difusion.GetSigma2() << endl;
+    file<< t << "\t" << Difusion.GetSigma2() << endl;
     Difusion.Colisione(ran64);
     Difusion.Adveccione();
   }
@@ -131,7 +132,7 @@ int main(void){
   
   cout<<"f(x)=m*x+b "<<endl;
   cout<<"a="<<Pendiente<<endl;
-  cout<<"fit f(x) 'dat.dat' u 1:2 via m,b"<<endl;
+  cout<<"fit f(x) 'dat.csv' u 1:2 via m,b"<<endl;
   cout<<"title_f(m,b)=sprintf('f(x)=%.2fx+ %.2f',m,b)"<<endl;
   cout<<"g(x)=a*x+b"<<endl;
   cout<<"title_g(a,b)=sprintf('g(x)=%.2gx+ %.2g',a,b)"<<endl;
