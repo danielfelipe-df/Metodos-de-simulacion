@@ -170,13 +170,24 @@ int main(void){
   LatticeBoltzmann Aire;
   int t,tmax=1000;
   double RHOinicial=1.0, Vventilador=0.1;
-  
+  /*
+  // Estos comandos se descomentan si se quiere guardar el gif
+  cout << "set terminal gif animate" << endl;
+  cout << "set output 'AireTest.gif'" << endl;
+
+  //Estos comandos se descomentan para hacer el gif
+  //cout << "set mapping cartesian" << endl;
+    cout << "set xrange[0:256]; set yrange[0:64]    " << endl;
+  */
   Aire.Inicie(RHOinicial,Vventilador,0);
   
   for(t=0;t<tmax;t++){
     Aire.Colisione();
     Aire.ImponerCampos(Vventilador);
     Aire.Adveccione();
+    //Comandos para hacer el gif
+    //Aire.Imprimase("Aire.dat",Vventilador);
+    //cout << "plot 'Aire.dat' with vectors head filled lt 2" << endl;
   }
   
   Aire.Imprimase("Aire.dat",Vventilador);
