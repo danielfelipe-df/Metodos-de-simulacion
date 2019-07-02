@@ -3,12 +3,13 @@
 #include <cmath>
 using namespace std;
 
-const int Lx=256;
+const int Lx=512;
 const int Ly=64;
 
 const int Q=9;
+const int n=1;
 
-const double tau=0.55;
+const double tau=1.5;
 const double Utau=1.0/tau;
 const double UmUtau=1-Utau;
 
@@ -23,6 +24,10 @@ public:
   double Jx(int ix,int iy,bool UseNew);
   double Jy(int ix,int iy,bool UseNew);
   double feq(double rho0,double Ux0,double Uy0,int i);
+  double sigmaxx(double ix, double iy, double t, double Vventilador);
+  double sigmayy(double ix, double iy, double t, double Vventilador);
+  double sigmaxy(double ix, double iy, double t, double Vventilador);
+  double interpolacion(int ix, int iy, double dA, char sigmas);
   void Colisione(void);
   void Adveccione(void);
   void Inicie(double rho0,double Ux0,double Uy0);
@@ -90,7 +95,7 @@ void LatticeBoltzmann::Inicie(double rho0,double Ux0,double Uy0){
 	f[ix][iy][i]=feq(rho0,Ux0,Uy0,i);
 }
 void LatticeBoltzmann::ImponerCampos(double Vventilador){
-  int i,ix,iy; double rho0; int ixc=Lx/8,iyc=Ly/2; int R=Ly/5, R2=R*R;
+  int i,ix,iy; double rho0; int ixc=128,iyc=32; int R=8, R2=R*R;
   
   for(ix=0;ix<Lx;ix++)
     for(iy=0;iy<Ly;iy++){
@@ -109,20 +114,52 @@ void LatticeBoltzmann::ImponerCampos(double Vventilador){
 }
 void LatticeBoltzmann::Imprimase(const char * NombreArchivo,double Vventilador){
   ofstream MiArchivo(NombreArchivo); double rho0,Ux0,Uy0;
-  for(int ix=0;ix<Lx;ix+=4){
-    for(int iy=0;iy<Ly;iy+=4){
+  for(int ix=0;ix<Lx;ix+=1){
+    for(int iy=0;iy<Ly;iy+=1){
       rho0=rho(ix,iy,true);  Ux0=Jx(ix,iy,true)/rho0;  Uy0=Jy(ix,iy,true)/rho0;
-      MiArchivo<<ix<<" "<<iy<<" "<<4*(Ux0-Vventilador)/Vventilador<<" "<<4*Uy0/Vventilador<<endl;
+      //MiArchivo<<ix<<" "<<iy<<" "<<4*(Ux0-Vventilador)/Vventilador<<" "<<4*Uy0/Vventilador<<endl;
+      MiArchivo<<ix<<" "<<iy<<" "<<(Ux0-Vventilador)/Vventilador<<" "<<Uy0/Vventilador<<endl;
+
     }
     MiArchivo<<endl;
   }
   MiArchivo.close();
 }
-
+double LatticeBoltzmann::sigmaxx(double ix, double iy, double t, double Vventilador){
+  double suma=0, rho0, p, Ux0;
+  rho0=rho(ix,iy,false); p=rho(ix,iy,false)/3;
+  for(int i=0; i<Q; i++){
+      Ux0=Jx(ix+Vventilador*t,iy+Vventilador*t,false)/rho0; //Se calculala velocidad en x+Vdt (Dive Vl peo no se que es, asumoq ue es v ventilador)
+      suma+=w[i]*V[0][i]*Ux0;
+  }
+  return -p+2*n*(3*suma/t);
+}
+double LatticeBoltzmann::sigmayy(double ix, double iy, double t, double Vventilador){
+  double suma=0, rho0, p, Uy0;
+  rho0=rho(ix,iy,false);  p=rho(ix,iy,false)/3;
+  for(int i=0; i<Q;i++){
+      Uy0=Jy(ix+Vventilador*t,iy+Vventilador*t,false)/rho0; //Se calculala velocidad en x+Vdt (Dive Vl peo no se que es, asumoq ue es v ventilador)
+      suma+=w[i]*V[1][i]*Uy0;
+  }
+  return -p+2*n*(3*suma/t);
+}
+double LatticeBoltzmann::sigmaxy(double ix, double iy, double t, double Vventilador){
+  double suma=0, rho0, p, Ux0;
+  rho0=rho(ix,iy,false); p=rho(ix,iy,false)/3;
+  for(int i=0; i<Q;i++){
+      Ux0=Jx(ix+Vventilador*t,iy+Vventilador*t,false)/rho0; //Se calculala velocidad en x+Vdt (Dive Vl peo no se que es, asumoq ue es v ventilador)
+      suma+=w[i]*V[1][i]*Ux0;
+  }
+  return 2*n*(3*suma/t);
+}
+double interpolacion(int ix, int iy, double dA, char sigmas){
+    int ix
+    double u =
+}
 
 int main(void){
   LatticeBoltzmann Aire;
-  int t,tmax=5000;
+  int t,tmax=1000;
   double RHOinicial=1.0, Vventilador=0.1;
 
   // Estos comandos se descomentan si se quiere guardar el gif
@@ -131,7 +168,7 @@ int main(void){
 
   //Estos comandos se descomentan para hacer el gif
   //cout << "set mapping cartesian" << endl;
-    cout << "set xrange[-50:300]; set yrange[-10:70]    " << endl;
+    cout << "set xrange[0:256]; set yrange[0:64]    " << endl;
 
   Aire.Inicie(RHOinicial,Vventilador,0);
   
