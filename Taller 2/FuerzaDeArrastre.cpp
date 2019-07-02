@@ -24,9 +24,9 @@ public:
   double Jx(int ix,int iy,bool UseNew);
   double Jy(int ix,int iy,bool UseNew);
   double feq(double rho0,double Ux0,double Uy0,int i);
-  double sigmaxx(double ix, double iy, double t, double Vventiladorx, double Vventiladory);
-  double sigmayy(double ix, double iy, double t, double Vventiladorx, double Vventiladory);
-  double sigmaxy(double ix, double iy, double t, double Vventiladorx, double Vventiladory);
+  double sigmaxx(double ix, double iy, double Vventiladorx, double Vventiladory);
+  double sigmayy(double ix, double iy,  double Vventiladorx, double Vventiladory);
+  double sigmaxy(double ix, double iy, double Vventiladorx, double Vventiladory);
   double interpolacion(int ix, int iy, double dA, char sigmas);
   void Colisione(void);
   void Adveccione(void);
@@ -125,32 +125,32 @@ void LatticeBoltzmann::Imprimase(const char * NombreArchivo,double Vventilador){
   }
   MiArchivo.close();
 }
-double LatticeBoltzmann::sigmaxx(double ix, double iy, double t, double Vventiladorx, double Vventiladory){
+double LatticeBoltzmann::sigmaxx(double ix, double iy, double Vventiladorx, double Vventiladory){
   double suma=0, rho0, p, Ux0;
   rho0=rho(ix,iy,false); p=rho(ix,iy,false)/3;
   for(int i=0; i<Q; i++){
       Ux0=Jx(ix+Vventiladorx*t,iy+Vventiladory*t,false)/rho0; //Se calculala velocidad en x+Vdt (Dive Vl peo no se que es, asumoq ue es v ventilador)
       suma+=w[i]*V[0][i]*Ux0;
   }
-  return -p+2*n*(3*suma/t);
+  return -p+2*n*(3*suma);
 }
-double LatticeBoltzmann::sigmayy(double ix, double iy, double t, double Vventiladorx, double Vventiladory){
+double LatticeBoltzmann::sigmayy(double ix, double iy, double Vventiladorx, double Vventiladory){
   double suma=0, rho0, p, Uy0;
   rho0=rho(ix,iy,false);  p=rho(ix,iy,false)/3;
   for(int i=0; i<Q;i++){
       Uy0=Jy(ix+Vventiladorx*t,iy+Vventiladory*t,false)/rho0; //Se calculala velocidad en x+Vdt (Dive Vl peo no se que es, asumoq ue es v ventilador)
       suma+=w[i]*V[1][i]*Uy0;
   }
-  return -p+2*n*(3*suma/t);
+  return -p+2*n*(3*suma);
 }
-double LatticeBoltzmann::sigmaxy(double ix, double iy, double t, double Vventiladorx, double Vventiladory){
+double LatticeBoltzmann::sigmaxy(double ix, double iy, double Vventiladorx, double Vventiladory){
   double suma=0, rho0, p, Ux0;
   rho0=rho(ix,iy,false); p=rho(ix,iy,false)/3;
   for(int i=0; i<Q;i++){
       Ux0=Jx(ix+Vventiladorx*t,iy+Vventiladory*t,false)/rho0; //Se calculala velocidad en x+Vdt (Dive Vl peo no se que es, asumoq ue es v ventilador)
       suma+=w[i]*V[1][i]*Ux0;
   }
-  return 2*n*(3*suma/t);
+  return 2*n*(3*suma);
 }
 double interpolacion(int ix, int iy, double dA, char sigmas){
     int ix
