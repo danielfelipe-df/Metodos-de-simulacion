@@ -2,8 +2,8 @@
 #include <fstream>
 #include "Random64.h"
 
-const int Lx = 25;
-const int Ly = 25;
+const int Lx = 256;
+const int Ly = 256;
 const double p0=0.25;
 const double p=0.25;
 const double pp=1-(2*p)-p0;
