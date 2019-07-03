@@ -138,7 +138,7 @@ double LatticeBoltzmann::Ccelda(int ix, int iy, int angle){
 
 int main(void){
   LatticeBoltzmann Ondas;
-  int t,tmax=400;
+  int t,tmax=300;
 
   double rho0=0,Jx0=0,Jy0=0;
   int theta[4] = {20,30,45,60};
@@ -146,6 +146,7 @@ int main(void){
   string archivo,ext,num;
 
   for(int i=0; i<4; i++){
+    archivo = "Ondas_" + to_string(*(theta+i)) + ".dat";
     //Inicie
     Ondas.Inicie(rho0,Jx0,Jy0, *(theta+i));
     //Corra
@@ -153,11 +154,22 @@ int main(void){
       Ondas.Colisione(*(theta+i));
       Ondas.ImponerCampos(t,0,*(theta+i));
       Ondas.Adveccione();
+      if(t==0){
+        std::cout << "set term gif animate" << std::endl;
+        std::cout << "set output 'pelicula_"<< *(theta+i) << ".gif'" << std::endl;
+        std::cout << "set pm3d map" << std::endl;
+        std::cout << "set cbrange[-10:10]" << std::endl;
+        std::cout << "set xrange[0:150]; set yrange[0:150]; set zrange[-10:10]" << std::endl;
+      }
+      if(t>=0){
+        Ondas.Imprimase(archivo);
+        std::cout << "splot '" << archivo << "'" << std::endl;
+      }
     }
     //Mostrar Resultado.
     archivo = "Ondas_" + to_string(*(theta+i)) + ".dat";
     Ondas.Imprimase(archivo);
-
+    /*
     cout << "set pm3d map" << endl;
     cout << "set size ratio 1" << endl;
     cout << "set terminal jpeg enhanced" << endl;
@@ -165,6 +177,7 @@ int main(void){
     cout << "set xrange[0:200]; set yrange[0:200]" << endl;
     cout << "set title 'Punto 5 ("<< *(theta+i) << "°)'" << endl;
     cout << "splot 'Ondas_"<< *(theta+i) << ".dat' " << endl;
+    */
   }
 
   return 0;

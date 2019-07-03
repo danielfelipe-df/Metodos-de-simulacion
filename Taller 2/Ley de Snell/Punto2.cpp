@@ -114,7 +114,7 @@ void LatticeBoltzmann::Imprimase(char const * NombreArchivo){
   ofstream MiArchivo(NombreArchivo); double rho0,Jx0,Jy0;
   for(int ix=0;ix<Lx/2.0;ix++){
     for(int iy=0;iy<Ly;iy++){
-      rho0=rho(ix,iy,true);   Jx0=Jx(ix,iy,false);  Jy0=Jy(ix,iy,false);
+      rho0=rho(ix,iy,true);
       MiArchivo<<ix<<" "<<iy<<" "<<rho0<<endl;
     }
     MiArchivo<<endl;
@@ -135,10 +135,15 @@ void LatticeBoltzmann::ImprimaUnaLinea(char const * NombreArchivo,int t){
 
 int main(void){
   LatticeBoltzmann Ondas;
-  int t,tmax=400;
+  int t,tmax=150;
 
   double rho0=0,Jx0=0,Jy0=0;
 
+  std::cout << "set term gif animate" << std::endl;
+  std::cout << "set output 'pelicula_2.gif'" << std::endl;
+  std::cout << "set pm3d" << std::endl;
+  std::cout << "set cbrange[-10:10]" << std::endl;
+  std::cout << "set xrange[0:50]; set yrange[0:50]; set zrange[-10:10]" << std::endl;
   //Inicie
   Ondas.Inicie(rho0,Jx0,Jy0);
   //Corra
@@ -146,11 +151,14 @@ int main(void){
     Ondas.Colisione();
     Ondas.ImponerCampos(t,0);
     Ondas.Adveccione();
+    Ondas.Imprimase("Ondas2.dat");
+    std::cout << "splot 'Ondas2.dat' title ''" << std::endl;
   }
   
   //Mostrar Resultado.
   Ondas.Imprimase("Ondas2.dat");
   //Ondas.ImprimaUnaLinea("CorteCentral2.dat",t);
+  /*
   cout << "set pm3d map" << endl;
   cout << "set size ratio 1" << endl;
   cout << "set terminal jpeg enhanced" << endl;
@@ -158,7 +166,7 @@ int main(void){
   cout << "set xrange[0:200]; set yrange[0:200]" << endl;
   cout << "set title 'Punto 2'" << endl;
   cout << "splot 'Ondas2.dat' " << endl;
-
+  */
   return 0;
 }
 

@@ -28,7 +28,7 @@ public:
   void ImponerCampos(int t,int ix);
   void Colisione(void);
   void Adveccione(void);
-  void Imprimase(char const * NombreArchivo,int t);
+  void Imprimase(char const * NombreArchivo);
   void ImprimaUnaLinea(char const * NombreArchivo,int t);
   //velocidad de la onda
   double Ccelda(int ix,int iy);
@@ -107,7 +107,7 @@ void LatticeBoltzmann::Adveccione(void){ //de fnew a f
       for(i=0;i<Q;i++)
         f[(ix+V[0][i]+Lx)%Lx][(iy+V[1][i]+Ly)%Ly][i]=fnew[ix][iy][i];
 }
-void LatticeBoltzmann::Imprimase(char const * NombreArchivo,int t){
+void LatticeBoltzmann::Imprimase(char const * NombreArchivo){
   ofstream MiArchivo(NombreArchivo); double rho0,Jx0,Jy0;
   for(int ix=0;ix<Lx/2.0;ix++){
     for(int iy=0;iy<Ly;iy++){
@@ -137,7 +137,7 @@ double LatticeBoltzmann::Ccelda(int ix, int iy){
 
 int main(void){
   LatticeBoltzmann Ondas;
-  int t,tmax=400;
+  int t,tmax=380;
 
   double rho0=0,Jx0=0,Jy0=0;
 
@@ -148,11 +148,22 @@ int main(void){
     Ondas.Colisione();
     Ondas.ImponerCampos(t,0);
     Ondas.Adveccione();
+    if(t==160){
+      std::cout << "set term gif animate" << std::endl;
+      std::cout << "set output 'pelicula_4.gif'" << std::endl;
+      std::cout << "set pm3d" << std::endl;
+      std::cout << "set cbrange[-10:10]" << std::endl;
+      std::cout << "set xrange[80:120]; set yrange[0:50]; set zrange[-10:10]" << std::endl;
+    }
+    if(t>=160){
+      Ondas.Imprimase("Ondas2.dat");
+      std::cout << "splot 'Ondas2.dat' title ''" << std::endl;
+    }
   }
   
   //Mostrar Resultado.
-  Ondas.Imprimase("Ondas4.dat",t);
-
+  Ondas.Imprimase("Ondas4.dat");
+  /*
   cout << "set pm3d map" << endl;
   cout << "set size ratio 1" << endl;
   cout << "set terminal jpeg enhanced" << endl;
@@ -160,7 +171,7 @@ int main(void){
   cout << "set xrange[0:200]; set yrange[0:200]" << endl;
   cout << "set title 'Punto 4'" << endl;
   cout << "splot 'Ondas4.dat' " << endl;
-
+  */
   return 0;
 }
 
