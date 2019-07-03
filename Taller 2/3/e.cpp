@@ -194,7 +194,7 @@ void LatticeBoltzmann::Inicie(double rho0,double Ux0,double Uy0){
 }
 void LatticeBoltzmann::ImponerCampos(double Vventilador){
   int i,ix,iy; double rho0; int ixc=Lx/2,iyc=Ly/2; int R=Ly/8, R2=R*R;
-  double omega=2*M_PI/1000;
+  double omega=2*M_PI/1000; double Ux0, Uy0;
   for(ix=0;ix<Lx;ix++)
     for(iy=0;iy<Ly;iy++){
       rho0=rho(ix,iy,false);
