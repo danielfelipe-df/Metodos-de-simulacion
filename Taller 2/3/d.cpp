@@ -28,7 +28,8 @@ public:
   double sigmaxx(int ix, int iy, double rho0);
   double sigmayy(int ix, int iy, double rho0);
   double sigmaxy(int ix, int iy, double rho0);
-  void FuerzaporLongitudCircunferencia(int t);
+  double Fuerza_x(double x, double y, double dAx,double dAy);
+  double Fuerza_y(double x, double y, double dAx,double dAy);
   
   void Colisione(void);
   void Adveccione(void);
@@ -76,27 +77,27 @@ double LatticeBoltzmann::feq(double rho0,double Ux0,double Uy0,int i){
 }
 double LatticeBoltzmann::sigmaxx(int ix, int iy, double rho0){
   double Ux0 = 0, Uxx = 0;
-  Ux0 = Jx(ix,iy,false)/rho0;
+  Ux0 = Jx(ix,iy,true)/rho0;
   
   for(int i=0;i<Q;i++){  Uxx += w[i]*V[0][i]*Ux0; }
   
-  return (-rho0/3.0) + 6*visc*Uxx;
+  return -rho0/3.0 + 6*visc*Uxx;
 }
 
 double LatticeBoltzmann::sigmayy(int ix, int iy, double rho0){
   double Uy0, Uyy = 0;
-  Uy0 = Jy(ix,iy,false)/rho0;
+  Uy0 = Jy(ix,iy,true)/rho0;
   
   for(int i=0;i<Q;i++){  Uyy += w[i]*V[1][i]*Uy0; }
   
-  return (-rho0/3.0) + 6*visc*Uyy;
+  return -rho0/3.0 + 6*visc*Uyy;
 }
 
 
 double LatticeBoltzmann::sigmaxy(int ix, int iy, double rho0){
   double Uy0, Ux0, Uxy = 0, Uyx = 0;
-    Uy0 = Jy(ix,iy,false)/rho0;
-    Ux0 = Jx(ix,iy,false)/rho0;
+    Uy0 = Jy(ix,iy,true)/rho0;
+    Ux0 = Jx(ix,iy,true)/rho0;
 
     for(int i=0;i<Q;i++){
     
@@ -108,20 +109,17 @@ double LatticeBoltzmann::sigmaxy(int ix, int iy, double rho0){
 }
 
 
-void LatticeBoltzmann::FuerzaporLongitudCircunferencia(int t){
+double LatticeBoltzmann::Fuerza_x(double x, double y, double dAx,double dAy){
 
-  int ixc=Lx/2,iyc=Ly/2; int R=Ly/8, R2=R*R;
   double sigmaxxP=0, sigmaxyP=0, sigmayyP=0;
-  double dFx=0, dFy=0;
+  double dFx=0;
   double rho0=0, rho1=0,rho2=0,rho3=0;
-  double v = 0.5, u = 0.5;
 
+  int ix = floor(x);
+  int iy = floor(y);
   
-  for(int ix=0;ix<Lx;ix++){
-    for(int iy=0;iy<Ly;iy++){
-      
-  if((ix-ixc)*(ix-ixc)+(iy-iyc)*(iy-iyc)==R2){
-    
+  double u =x-ix, v =y-iy ;
+  
      rho0=rho(   ix,    iy,false);
      rho1=rho( ix+1,    iy,false);
      rho2=rho(   ix,  iy+1,false);
@@ -133,16 +131,39 @@ void LatticeBoltzmann::FuerzaporLongitudCircunferencia(int t){
     sigmayyP = sigmayy(ix,iy,rho0)*(1-v)*(1-u)+sigmayy(ix+1,iy,rho1)*u*(1-v)+sigmayy(ix,iy+1,rho2)*v*(1-u)+sigmayy(ix+1,iy+1,rho3)*u*v;
     
     sigmaxyP = sigmaxy(ix,iy,rho0)*(1-v)*(1-u)+sigmaxy(ix+1,iy,rho1)*u*(1-v)+sigmaxy(ix,iy+1,rho2)*v*(1-u)+sigmaxy(ix+1,iy+1,rho3)*u*v;
-    
-    dFx += sigmaxxP + sigmaxyP;
-    dFy += sigmayyP + sigmaxyP;
-    
-  }
-  else {dFx += 0; dFy +=0; }  
-    }
-  }
-  cout<<t<<' '<<dFx<<endl; 
+
+  return sigmaxxP*dAx + sigmaxyP*dAy; 
 }
+
+double LatticeBoltzmann::Fuerza_y(double x, double y, double dAx,double dAy){
+
+  double sigmaxxP=0, sigmaxyP=0, sigmayyP=0;
+  double dFx=0;
+  double rho0=0, rho1=0,rho2=0,rho3=0;
+
+  int ix = floor(x);
+  int iy = floor(y);
+  
+  double u =x-ix, v =y-iy ;
+  
+     rho0=rho(   ix,    iy,false);
+     rho1=rho( ix+1,    iy,false);
+     rho2=rho(   ix,  iy+1,false);
+     rho3=rho( ix+1,  iy+1,false);
+
+    
+    sigmaxxP = sigmaxx(ix,iy,rho0)*(1-v)*(1-u)+sigmaxx(ix+1,iy,rho1)*u*(1-v)+sigmaxx(ix,iy+1,rho2)*v*(1-u)+sigmaxx(ix+1,iy+1,rho3)*u*v;
+    
+    sigmayyP = sigmayy(ix,iy,rho0)*(1-v)*(1-u)+sigmayy(ix+1,iy,rho1)*u*(1-v)+sigmayy(ix,iy+1,rho2)*v*(1-u)+sigmayy(ix+1,iy+1,rho3)*u*v;
+    
+    sigmaxyP = sigmaxy(ix,iy,rho0)*(1-v)*(1-u)+sigmaxy(ix+1,iy,rho1)*u*(1-v)+sigmaxy(ix,iy+1,rho2)*v*(1-u)+sigmaxy(ix+1,iy+1,rho3)*u*v;
+
+  return  sigmaxyP*dAx + sigmayyP*dAy; 
+}
+
+
+
+
 
 
 void LatticeBoltzmann::Colisione(void){
@@ -156,6 +177,9 @@ void LatticeBoltzmann::Colisione(void){
 	fnew[ix][iy][i]=UmUtau*f[ix][iy][i]+Utau*feq(rho0,Ux0,Uy0,i);
     }
 }
+
+
+
 void LatticeBoltzmann::Adveccione(void){
   for(int ix=0;ix<Lx;ix++)
     for(int iy=0;iy<Ly;iy++)
@@ -180,9 +204,7 @@ void LatticeBoltzmann::ImponerCampos(double Vventilador){
       //Obstáculo cilíndrico
       else if((ix-ixc)*(ix-ixc)+(iy-iyc)*(iy-iyc)<=R2)
 	for(i=0;i<Q;i++)  fnew[ix][iy][i]=feq(rho0,0,0,i);
-      //Un puntito extra
-      else if(ix==ixc && iy==iyc+R+1)
-	for(i=0;i<Q;i++) fnew[ix][iy][i]=feq(rho0,0,0,i);
+
     }
 
 }
@@ -201,9 +223,13 @@ void LatticeBoltzmann::Imprimase(const char * NombreArchivo,double Vventilador){
 
 int main(void){
   LatticeBoltzmann Aire;
-  int t,tmax=1000;
+  int t,tmax=600;
   double RHOinicial=1.0, Vventilador=0.1;
-  
+  int ixc=Lx/2,iyc=Ly/2; int R=Ly/8;
+  double theta;
+  double thetamax = 2*M_PI;
+  double dtheta = thetamax/12;
+  double x, y, dAx, dAy, Ffx, Ffy;  
   Aire.Inicie(RHOinicial,Vventilador,0);
   
   for(t=0;t<tmax;t++){
@@ -211,11 +237,22 @@ int main(void){
     Aire.ImponerCampos(Vventilador);
     Aire.Adveccione();
     //    Aire.Imprimase("Aire.dat",Vventilador);
-    Aire.FuerzaporLongitudCircunferencia(t);
+  
     //  cout<<"plot 'Aire.dat' w vec"<<endl;
   }
   
-  // Aire.Imprimase("Aire.dat",Vventilador);
+  for(theta=0;theta<=thetamax; theta+=dtheta ){
+    
+    x=R*cos(theta+dtheta/2.0) + ixc;
+    y=R*sin(theta+dtheta/2.0) + iyc;
+    
+    dAx=sin(theta+dtheta/2.0)*M_PI*R/30;
+    dAy=cos(theta+dtheta/2.0)*M_PI*R/30;
 
+    Ffx +=Aire.Fuerza_x(x,y,dAx,dAy);
+    Ffy +=Aire.Fuerza_y(x,y,dAx,dAy);
+
+  }
+  cout <<Ffx<<' ' <<Ffy<<endl;
   return 0;
 }
