@@ -204,8 +204,12 @@ void LatticeBoltzmann::ImponerCampos(double Vventilador){
 
 
       //Obstáculo cilíndrico
-      else if((ix-ixc)*(ix-ixc)+(iy-iyc)*(iy-iyc)<=R2){
-	for(i=0;i<Q;i++) { fnew[ix][iy][i]=feq(rho0, 0, 0, i);}
+       else if((ix-ixc)*(ix-ixc)+(iy-iyc)*(iy-iyc)<=R2){
+	 
+	Ux0 = omega*(ix-ixc);
+	Uy0= -omega*(iy-iyc);
+	
+	for(i=0;i<Q;i++) { fnew[ix][iy][i]=feq(rho0, Ux0, Uy0, i);}
        }
       
     }
@@ -226,15 +230,13 @@ void LatticeBoltzmann::Imprimase(const char * NombreArchivo,double Vventilador){
 
 int main(void){
   LatticeBoltzmann Aire;
-  int t,tmax=100;
-  double RHOinicial=1.0, Vventilador=0.2;
+  int t,tmax=600;
+  double RHOinicial=1.0, Vventilador=0.1;
   int ixc=Lx/2,iyc=Ly/2; int R=Ly/8;
   double theta;
   double thetamax = 2*M_PI;
   double dtheta = thetamax/24;
-  double x, y, dAx, dAy, Ffx, Ffy;
-
-  for (Vventilador = 0.1; Vventilador <= 0.5; Vventilador += 0.05){
+  double x, y, dAx, dAy, Ffx, Ffy;  
   Aire.Inicie(RHOinicial,Vventilador,0);
   
   for(t=0;t<tmax;t++){
@@ -245,20 +247,21 @@ int main(void){
   
     //cout<<"plot 'Aire.dat' w vec"<<endl;
     Ffx = 0; Ffy = 0;
-  }
-  for(theta=0;theta<=thetamax; theta+=dtheta ){
+ for(theta=0;theta<=thetamax; theta+=dtheta ){
     
     x= R*cos(theta) + ixc;
     y= R*sin(theta) + iyc;
     
     dAx= cos(theta)*dtheta*R;
     dAy= sin(theta)*dtheta*R;
-    
+
     Ffx +=Aire.Fuerza_x(x,y,dAx,dAy);
     Ffy +=Aire.Fuerza_y(x,y,dAx,dAy);
 
   }
-  cout <<Vventilador<<' ' <<Ffx<<endl;
+  cout <<t<<' ' <<Ffx<<endl;
+    
   }
+  
   return 0;
 }
