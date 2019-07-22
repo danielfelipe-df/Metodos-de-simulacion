@@ -48,23 +48,16 @@ double LatticeBoltzmann::feq(double rho0,double Jx0,double Jy0,double Jz0,int i)
 
 void LatticeBoltzmann::Colisione(void){
   int ix,iy,iz,i; double rho0,Jx0,Jy0,Jz0;
-  //Para cada celda
+
+  //Región sin frontera ni obstáculos dentro del auditorio
   for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
-    for(ix=0;ix<Lx;ix++){
-      for(iz=0;iz<Lz;iz++){
+    for(ix=1;ix<(Lx-1);ix++){
+      for(iz=1;iz<(Lz-1);iz++){
         //Calcular las cantidades macroscópicas
         rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
-        fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
-        fnew[ix][iy][iz][3]=UmUtau*f[ix][iy][iz][3]+Utau*feq(rho0,Jx0,Jy0,Jz0,3);
-        fnew[ix][iy][iz][4]=UmUtau*f[ix][iy][iz][4]+Utau*feq(rho0,Jx0,Jy0,Jz0,4);
-
-        if(ix==Lx-1 || ix==0){fnew[ix][iy][iz][2]=kx*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=kx*f[ix][iy][iz][2];}
-        else{fnew[ix][iy][iz][1]=UmUtau*f[ix][iy][iz][1]+Utau*feq(rho0,Jx0,Jy0,Jz0,1);
-            fnew[ix][iy][iz][2]=UmUtau*f[ix][iy][iz][2]+Utau*feq(rho0,Jx0,Jy0,Jz0,2);}
-
-        if(iz==Lz-1 || iz==0){fnew[ix][iy][iz][6]=kz*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz*f[ix][iy][iz][6];}
-        else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
-            fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
+        for(i=0; i<Q; i++){
+          fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);
+        }
       }
     }
   }
@@ -82,19 +75,28 @@ void LatticeBoltzmann::Colisione(void){
         }
     }
     else{
-      for(iz=0; iz<Lz; iz++)
+      for(iz=0; iz<Lz; iz++){
         for(iy=0; iy<(3*proportion); iy++){
           rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
-          for(i=0; i<Q; i++)
-            fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);
+          for(i=0; i<3; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
+
+          if(iz==0){fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];}
+          else if(iz==Lz-1){fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];}
+          else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
+                fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
+
+          if(iy==0){fnew[ix][iy][iz][3]=ky_1*f[ix][iy][iz][4]; fnew[ix][iy][iz][4]=ky_1*f[ix][iy][iz][3];}
+          else{fnew[ix][iy][iz][3]=UmUtau*f[ix][iy][iz][3]+Utau*feq(rho0,Jx0,Jy0,Jz0,3);
+                fnew[ix][iy][iz][4]=UmUtau*f[ix][iy][iz][4]+Utau*feq(rho0,Jx0,Jy0,Jz0,4);}
         }
+      }
     }
   }
 
   //Región de las puertas
   for(ix=0; ix<Lx; ix++){
-    if(Columna(5*proportion,12*proportion,ix) || Columna(27*proportion,34*proportion,ix)){//Defino las regiones de las puertas
-      for(iz=0; iz<Lz; iz++){
+    for(iz=0; iz<Lz; iz++){
+      if(Rectangulo(5,10,ix,0,6,iz) || Rectangulo(25,30,ix,0,6,iz)){//Defino las regiones de las puertas
         for(iy=Ly-(2*proportion); iy<Ly; iy++){
           rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
           fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
@@ -103,18 +105,83 @@ void LatticeBoltzmann::Colisione(void){
           fnew[ix][iy][iz][6]=k_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=k_2*f[ix][iy][iz][6];
         }
       }
-    }
-    else{
-      for(iz=0; iz<Lz; iz++){
+      else{
         for(iy=Ly-(2*proportion); iy<Ly; iy++){
           rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
-          for(i=0; i<Q; i++)
-            fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);
+          for(i=0; i<3; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
+
+          if(iz==0){fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];}
+          else if(iz==Lz-1){fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];}
+          else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
+                fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
+
+          if(iy==Ly-1){fnew[ix][iy][iz][3]=ky_2*f[ix][iy][iz][4]; fnew[ix][iy][iz][4]=ky_2*f[ix][iy][iz][3];}
+          else{fnew[ix][iy][iz][3]=UmUtau*f[ix][iy][iz][3]+Utau*feq(rho0,Jx0,Jy0,Jz0,3);
+                fnew[ix][iy][iz][4]=UmUtau*f[ix][iy][iz][4]+Utau*feq(rho0,Jx0,Jy0,Jz0,4);}
         }
       }
     }
   }
 
+  //Región del tablero
+  ix=0;
+  for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
+    for(iz=0; iz<Lz; iz++){
+      if(Rectangulo(5,15,iy,3,7,iz)){
+        fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
+        fnew[ix][iy][iz][2]=k_3*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=k_3*f[ix][iy][iz][2];
+        fnew[ix][iy][iz][4]=k_3*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=k_3*f[ix][iy][iz][4];
+        fnew[ix][iy][iz][6]=k_3*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=k_3*f[ix][iy][iz][6];
+      }
+      else{
+        for(i=0; i<5; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
+
+        if(iz==0){fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];}
+        else if(iz==Lz-1){fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];}
+        else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
+              fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
+      }
+    }
+  }
+
+  //Región opuesta del tablero
+  ix=Lx-1;
+  for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
+    for(iz=0; iz<Lz; iz++){
+      if(Rectangulo(5,7,iy,3,7,iz)){
+        fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
+        fnew[ix][iy][iz][2]=k_4*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=k_4*f[ix][iy][iz][2];
+        fnew[ix][iy][iz][4]=k_4*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=k_4*f[ix][iy][iz][4];
+        fnew[ix][iy][iz][6]=k_4*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=k_4*f[ix][iy][iz][6];
+      }
+      else{
+        for(i=0; i<5; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
+
+        if(iz==0){fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];}
+        else if(iz==Lz-1){fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];}
+        else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
+              fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
+      }
+    }
+  }
+
+  //Para el piso
+  iz=0;
+  for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
+    for(ix=1; ix<(Lx-1); ix++){
+      for(i=0; i<5; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
+      fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];
+    }
+  }
+
+  //Para el techo
+  iz=Lz-1;
+  for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
+    for(ix=1; ix<(Lx-1); ix++){
+      for(i=0; i<5; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
+      fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];
+    }
+  }
 }
 
 void LatticeBoltzmann::Adveccione(void){
@@ -169,5 +236,14 @@ void LatticeBoltzmann::Imprimir(int t, int ix, int iy, int iz, const char * Nomb
 bool LatticeBoltzmann::Columna(int x1, int x2, int x)
 {
   if(x>=x1 && x<=x2){return true;}
+  else{return false;}
+}
+
+bool LatticeBoltzmann::Rectangulo(int x1, int x2, int x, int y1, int y2, int y)
+{
+  if(x>=x1 && x<=x2){
+    if(y>=y1 && y<=y2){return true;}
+    else{return false;}
+  }
   else{return false;}
 }

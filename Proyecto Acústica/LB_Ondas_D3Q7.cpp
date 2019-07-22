@@ -22,12 +22,14 @@ void display(void)
   for(int ix=0; ix<Lx; ix++){
     for(int iy=0; iy<Ly; iy++){
       rho0 = rho1[ix][iy][iz];
-      glColor3f(1.0-rho0*20.0,0.0,rho0*20.0);
-      glVertex3f(ix*0.0075+0.15,iy*0.0075+0.25,0);
+      if(rho0>0){glColor3f(1.0-rho0*40.0,1.0-rho0*40.0,1.0);}
+      else if(rho0<0){glColor3f(1.0,1.0+rho0*40.0,1.0+rho0*40.0);}
+      else{glColor3f(1.0,1.0,1.0);}
+      glVertex3d(ix*0.0025-0.15,iy*0.0075-0.25,rho0*2.0);
     }
   }
   glEnd();
-  std::cout << t << std::endl;
+  //std::cout << t << std::endl;
   glFlush();
 }
 
@@ -37,9 +39,12 @@ void init(void)
   glClearColor(0.0, 0.0, 0.0, 0.0);
   */
   /*initialize viewing values */
-  glMatrixMode(GL_PROJECTION);
+  //glMatrixMode(GL_PROJECTION);
+  glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+  //glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+  glOrtho(0.0, 1.0, -2.0, 2.0, -10.0, 1.0);
+  gluLookAt(0.25, -0.5, 2.0, 10.5, 10.5, 70.0, 1.0, 1.0, -1.0);
 }
 
 void AmplitudDisplay(void)
