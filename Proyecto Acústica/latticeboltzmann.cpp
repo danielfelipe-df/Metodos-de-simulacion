@@ -1,4 +1,5 @@
-﻿#include "latticeboltzmann.h"
+﻿#include <omp.h>
+#include "latticeboltzmann.h"
 
 LatticeBoltzmann::LatticeBoltzmann(void){
   //Cargar los pesos
@@ -49,6 +50,7 @@ double LatticeBoltzmann::feq(double rho0,double Jx0,double Jy0,double Jz0,int i)
 void LatticeBoltzmann::Colisione(void){
   int ix,iy,iz,i; double rho0,Jx0,Jy0,Jz0;
 
+#pragma omp parallel for private(rho0, Jx0, Jy0, Jz0, ix, iy, iz, i)
   //Región sin frontera ni obstáculos dentro del auditorio
   for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
     for(ix=1;ix<(Lx-1);ix++){
@@ -62,8 +64,11 @@ void LatticeBoltzmann::Colisione(void){
     }
   }
 
+
+#pragma omp parallel for private(rho0, Jx0, Jy0, Jz0, ix, iy, iz, i)
   //Región de las columnas
   for(ix=0; ix<Lx; ix++){
+    //Caso de las columnas
     if(Columna(0*proportion,2*proportion,ix) || Columna(12*proportion,15*proportion,ix) || Columna(25*proportion,28*proportion,ix)){//Defino las regiones de la columna
       for(iz=0; iz<Lz; iz++)
         for(iy=0; iy<(3*proportion); iy++){
@@ -76,36 +81,90 @@ void LatticeBoltzmann::Colisione(void){
     }
     else{
       for(iz=0; iz<Lz; iz++){
-        for(iy=0; iy<(3*proportion); iy++){
-          rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+        //Caso de las ventanas
+        if(Columna(3*proportion,9*proportion,iz)){
+          iy=0; rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+          fnew[ix][iy][iz][3]=k_5*f[ix][iy][iz][4]; fnew[ix][iy][iz][4]=k_5*f[ix][iy][iz][3];
           for(i=0; i<3; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
+          for(i=5; i<Q; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
 
-          if(iz==0){fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];}
-          else if(iz==Lz-1){fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];}
-          else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
+          for(iy=1; iy<(3*proportion);iy++){
+            rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+            for(i=0; i<Q; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
+          }
+        }
+        else{
+          //Otros casos
+          for(iy=0; iy<(3*proportion); iy++){
+            rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+            for(i=0; i<3; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
+
+            if(iz==0){fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];}
+            else if(iz==Lz-1){fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];}
+            else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
                 fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
 
-          if(iy==0){fnew[ix][iy][iz][3]=ky_1*f[ix][iy][iz][4]; fnew[ix][iy][iz][4]=ky_1*f[ix][iy][iz][3];}
-          else{fnew[ix][iy][iz][3]=UmUtau*f[ix][iy][iz][3]+Utau*feq(rho0,Jx0,Jy0,Jz0,3);
+            if(iy==0){fnew[ix][iy][iz][3]=ky_1*f[ix][iy][iz][4]; fnew[ix][iy][iz][4]=ky_1*f[ix][iy][iz][3];}
+            else{fnew[ix][iy][iz][3]=UmUtau*f[ix][iy][iz][3]+Utau*feq(rho0,Jx0,Jy0,Jz0,3);
                 fnew[ix][iy][iz][4]=UmUtau*f[ix][iy][iz][4]+Utau*feq(rho0,Jx0,Jy0,Jz0,4);}
+          }
         }
       }
     }
   }
 
+#pragma omp parallel for private(rho0, Jx0, Jy0, Jz0, ix, iy, iz, i)
   //Región de las puertas
   for(ix=0; ix<Lx; ix++){
-    for(iz=0; iz<Lz; iz++){
-      if(Rectangulo(5,10,ix,0,6,iz) || Rectangulo(25,30,ix,0,6,iz)){//Defino las regiones de las puertas
-        for(iy=Ly-(2*proportion); iy<Ly; iy++){
-          rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
-          fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
-          fnew[ix][iy][iz][2]=k_2*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=k_2*f[ix][iy][iz][2];
-          fnew[ix][iy][iz][4]=k_2*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=k_2*f[ix][iy][iz][4];
-          fnew[ix][iy][iz][6]=k_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=k_2*f[ix][iy][iz][6];
+    //Defino las regiones de las columnas
+    if(Columna(6*proportion,13*proportion,ix)){
+      for(iz=0; iz<Lz; iz++){
+        //Defino las regiones de las puertas
+        if(Rectangulo(7*proportion,12*proportion,ix,0*proportion,6*proportion,iz)){
+          for(iy=Ly-(2*proportion); iy<Ly; iy++){
+            rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+            fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
+            fnew[ix][iy][iz][2]=k_2*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=k_2*f[ix][iy][iz][2];
+            fnew[ix][iy][iz][4]=k_2*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=k_2*f[ix][iy][iz][4];
+            fnew[ix][iy][iz][6]=k_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=k_2*f[ix][iy][iz][6];
+          }
+        }
+        else{
+          for(iy=Ly-(2*proportion); iy<Ly; iy++){
+            rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+            fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
+            fnew[ix][iy][iz][2]=ky_2*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=ky_2*f[ix][iy][iz][2];
+            fnew[ix][iy][iz][4]=ky_2*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=ky_2*f[ix][iy][iz][4];
+            fnew[ix][iy][iz][6]=ky_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=ky_2*f[ix][iy][iz][6];
+          }
         }
       }
-      else{
+    }
+    else if(Columna(28*proportion,35*proportion,ix)){
+      for(iz=0; iz<Lz; iz++){
+        //Defino las regiones de las puertas
+        if(Rectangulo(29*proportion,34*proportion,ix,0*proportion,6*proportion,iz)){
+          for(iy=Ly-(2*proportion); iy<Ly; iy++){
+            rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+            fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
+            fnew[ix][iy][iz][2]=k_2*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=k_2*f[ix][iy][iz][2];
+            fnew[ix][iy][iz][4]=k_2*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=k_2*f[ix][iy][iz][4];
+            fnew[ix][iy][iz][6]=k_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=k_2*f[ix][iy][iz][6];
+          }
+        }
+        else{
+          for(iy=Ly-(2*proportion); iy<Ly; iy++){
+            rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+            fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
+            fnew[ix][iy][iz][2]=ky_2*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=ky_2*f[ix][iy][iz][2];
+            fnew[ix][iy][iz][4]=ky_2*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=ky_2*f[ix][iy][iz][4];
+            fnew[ix][iy][iz][6]=ky_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=ky_2*f[ix][iy][iz][6];
+          }
+        }
+      }
+    }
+    else{//Defino las otras regiones
+      for(iz=0; iz<Lz; iz++){
         for(iy=Ly-(2*proportion); iy<Ly; iy++){
           rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
           for(i=0; i<3; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
@@ -125,50 +184,55 @@ void LatticeBoltzmann::Colisione(void){
 
   //Región del tablero
   ix=0;
-  for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
-    for(iz=0; iz<Lz; iz++){
-      if(Rectangulo(5,15,iy,3,7,iz)){
+#pragma omp parallel for private(rho0, Jx0, Jy0, Jz0, iy, iz, i)
+  for(iz=0; iz<Lz; iz++){
+    if(Columna(3*proportion,7*proportion,iz)){
+      for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
+        rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
         fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
         fnew[ix][iy][iz][2]=k_3*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=k_3*f[ix][iy][iz][2];
         fnew[ix][iy][iz][4]=k_3*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=k_3*f[ix][iy][iz][4];
         fnew[ix][iy][iz][6]=k_3*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=k_3*f[ix][iy][iz][6];
       }
-      else{
-        for(i=0; i<5; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
-
-        if(iz==0){fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];}
-        else if(iz==Lz-1){fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];}
-        else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
-              fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
+    }
+    else{
+      for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
+        rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+        fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
+        fnew[ix][iy][iz][2]=kx_1*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=kx_1*f[ix][iy][iz][2];
+        fnew[ix][iy][iz][4]=kx_1*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=kx_1*f[ix][iy][iz][4];
+        fnew[ix][iy][iz][6]=kx_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kx_1*f[ix][iy][iz][6];
       }
     }
   }
 
   //Región opuesta del tablero
   ix=Lx-1;
+#pragma omp parallel for private(rho0, Jx0, Jy0, Jz0, iy, iz, i)
   for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
     for(iz=0; iz<Lz; iz++){
-      if(Rectangulo(5,7,iy,3,7,iz)){
+      rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
+      if(Rectangulo(9*proportion,12*proportion,iy,3*proportion,6*proportion,iz)){
         fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
         fnew[ix][iy][iz][2]=k_4*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=k_4*f[ix][iy][iz][2];
         fnew[ix][iy][iz][4]=k_4*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=k_4*f[ix][iy][iz][4];
         fnew[ix][iy][iz][6]=k_4*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=k_4*f[ix][iy][iz][6];
       }
       else{
-        for(i=0; i<5; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
-
-        if(iz==0){fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];}
-        else if(iz==Lz-1){fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];}
-        else{fnew[ix][iy][iz][5]=UmUtau*f[ix][iy][iz][5]+Utau*feq(rho0,Jx0,Jy0,Jz0,5);
-              fnew[ix][iy][iz][6]=UmUtau*f[ix][iy][iz][6]+Utau*feq(rho0,Jx0,Jy0,Jz0,6);}
+        fnew[ix][iy][iz][0]=UmUtau*f[ix][iy][iz][0]+Utau*feq(rho0,Jx0,Jy0,Jz0,0);
+        fnew[ix][iy][iz][2]=kx_2*f[ix][iy][iz][1]; fnew[ix][iy][iz][1]=kx_2*f[ix][iy][iz][2];
+        fnew[ix][iy][iz][4]=kx_2*f[ix][iy][iz][3]; fnew[ix][iy][iz][3]=kx_2*f[ix][iy][iz][4];
+        fnew[ix][iy][iz][6]=kx_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kx_2*f[ix][iy][iz][6];
       }
     }
   }
 
   //Para el piso
   iz=0;
+#pragma omp parallel for private(rho0, Jx0, Jy0, Jz0, ix, iy, i)
   for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
     for(ix=1; ix<(Lx-1); ix++){
+      rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
       for(i=0; i<5; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
       fnew[ix][iy][iz][6]=kz_1*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_1*f[ix][iy][iz][6];
     }
@@ -176,8 +240,10 @@ void LatticeBoltzmann::Colisione(void){
 
   //Para el techo
   iz=Lz-1;
+#pragma omp parallel for private(rho0, Jx0, Jy0, Jz0, ix, iy, i)
   for(iy=3*proportion;iy<Ly-(2*proportion);iy++){
     for(ix=1; ix<(Lx-1); ix++){
+      rho0=rho(ix,iy,iz,false);  Jx0=Jx(ix,iy,iz,false);  Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
       for(i=0; i<5; i++){fnew[ix][iy][iz][i]=UmUtau*f[ix][iy][iz][i]+Utau*feq(rho0,Jx0,Jy0,Jz0,i);}
       fnew[ix][iy][iz][6]=kz_2*f[ix][iy][iz][5]; fnew[ix][iy][iz][5]=kz_2*f[ix][iy][iz][6];
     }
@@ -185,25 +251,29 @@ void LatticeBoltzmann::Colisione(void){
 }
 
 void LatticeBoltzmann::Adveccione(void){
-  for(int ix=0;ix<Lx;ix++)
-    for(int iy=0;iy<Ly;iy++)
-      for(int iz=0;iz<Lz;iz++)
-        for(int i=0;i<Q;i++)
+  int ix,iy,iz,i;
+#pragma omp parallel for private(ix, iy, iz, i)
+  for(ix=0;ix<Lx;ix++)
+    for(iy=0;iy<Ly;iy++)
+      for(iz=0;iz<Lz;iz++)
+        for(i=0;i<Q;i++)
           if(ix+V[0][i]<Lx && iy+V[1][i]<Ly && iz+V[2][i]<Lz && ix+V[0][i]>=0 && iy+V[1][i]>=0 && iz+V[2][i]>=0)
             f[ix+V[0][i]][iy+V[1][i]][iz+V[2][i]][i]=fnew[ix][iy][iz][i];
 }
 
 void LatticeBoltzmann::Inicie(double rho0,double Jx0,double Jy0, double Jz0){
-  for(int ix=0;ix<Lx;ix++)
-    for(int iy=0;iy<Ly;iy++)
-      for(int iz=0;iz<Lz;iz++)
-        for(int i=0;i<Q;i++)
+  int ix,iy,iz,i;
+#pragma omp parallel for private(ix, iy, iz, i)
+  for(ix=0;ix<Lx;ix++)
+    for(iy=0;iy<Ly;iy++)
+      for(iz=0;iz<Lz;iz++)
+        for(i=0;i<Q;i++)
           f[ix][iy][iz][i]=feq(rho0,Jx0,Jy0,Jz0,i);
 }
 
 void LatticeBoltzmann::ImponerCampos(int t){
   int i,ix,iy,iz,A; double lambda,omega,rho0,Jx0,Jy0,Jz0;
-  lambda=5; omega=2*M_PI*C/lambda; ix=Lx/2; iy=Ly/2; iz=Lz/2; A=2;
+  lambda=7; omega=2*M_PI*C/lambda; ix=Lx/2; iy=Ly/2; iz=Lz/2; A=2;
   rho0=A*sin(omega*t); Jx0=Jx(ix,iy,iz,false); Jy0=Jy(ix,iy,iz,false); Jz0=Jz(ix,iy,iz,false);
   for(i=0;i<Q;i++)
     fnew[ix][iy][iz][i]=feq(rho0,Jx0,Jy0,Jz0,i);
