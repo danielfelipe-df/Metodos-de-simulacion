@@ -12,25 +12,24 @@
 
 
 const int proportion=3;
-const int Lx=40*proportion;
-const int Ly=21*proportion;
-const int Lz=11*proportion;
+const int Lx=(40*proportion)+2;
+const int Ly=(21*proportion)+2;
+const int Lz=(11*proportion)+2;
 
 const int Q=7;
 const double W0=1.0/4;
 //Constante de reflexión
 //const double k=1;
-const double kx_1 = 0; //Constante de reflexión para la zona del tablero.
-const double kx_2 = 0; //Constante de reflexión para la zona del fondo.
-const double ky_1 = 0; //Constante de reflexión para la zona de las ventanas.
-const double ky_2 = 0; //Constante de reflexión para la zona de las puertas.
-const double kz_1 = 0; //Constante de reflexión para la zona del piso.
-const double kz_2 = 0; //Constante de reflexión para la zona del techo.
-const double k_1 = 0; //Constante de reflexión para la columna.
-const double k_2 = 0; //Constante de reflexión para la puerta.
-const double k_3 = 0; //Constante de reflexión para el tablero.
-const double k_4 = 0; //Constante de reflexión para la ventanita del fondo.
-const double k_5 = 0; //Constante de reflexión para las ventanas grandes.
+
+const double k_ladrillo = 0.0; //Constante de reflexión para el ladrillo normal
+const double k_zigzag = 0.0; //Constante de reflexión para el ladrillo en zig-zag
+const double k_pared = 0.0; //Constante de reflexión para la pared blanca
+const double k_baldosa = 0.0; //Constante de reflexión para la baldosa
+const double k_techo = 0.0; //Constante de reflexión para el techo
+const double k_ventanita = 0.0; //Constante de reflexión para la ventanita del fondo
+const double k_tablero = 0.0; //Constante de reflexión para el tablero
+const double k_ventanas = 0.0; //Constante de reflexión para las ventanas grandes
+const double k_puerta = 0.0; //Constante de reflexión para las puertas
 
 const double C=0.5; // C<0.707 celdas/click
 const double TresC2=3*C*C;
@@ -61,6 +60,7 @@ public:
   void Imprimir(int t, int ix, int iy, int iz, const char * NombreArchivo);
   bool Columna(int x1, int x2, int x);
   bool Rectangulo(int x1, int x2, int x, int y1, int y2, int y);
+  double GetRho(int ix, int iy, int iz, bool algo){double rho0 = rho(ix,iy,iz,algo);  return rho0;};
 };
 
 #endif // LATTICEBOLTZMANN_H
