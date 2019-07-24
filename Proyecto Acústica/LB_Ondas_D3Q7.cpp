@@ -121,7 +121,9 @@ int main(int argc, char** argv)
   std::ofstream fout("Datos.csv");
   for(t=0;t<tmax;t++){
     Ondas.Colisione();
-    Ondas.ImponerCampos(t);
+    if(t>=(6182*2)){
+      Ondas.ImponerCampos(t);
+    }
     Ondas.Adveccione();
     fout << t << '\t' ;
     fout << Ondas.GetRho(13*proportion,(3+5)*proportion,2*proportion,true) << '\t'; //Primera posición
